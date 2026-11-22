@@ -1,0 +1,136 @@
+:root {
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Ubuntu, "Helvetica Neue", Arial, sans-serif;
+
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --sidebar: #f0efeb;
+  --hover: rgba(0, 0, 0, 0.045);
+  --active: rgba(83, 74, 183, 0.1);
+  --border: #e4e3de;
+  --border-strong: #cfcec8;
+  --text: #22221f;
+  --text-2: #5f5e5a;
+  --text-3: #8a8983;
+  --accent: #534ab7;
+  --accent-text: #ffffff;
+  --danger: #b42318;
+  --danger-bg: #fdecea;
+  --shadow: 0 8px 28px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+  --radius: 8px;
+
+  color-scheme: light dark;
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1a;
+    --surface: #242422;
+    --sidebar: #181816;
+    --hover: rgba(255, 255, 255, 0.06);
+    --active: rgba(175, 169, 236, 0.16);
+    --border: #33332f;
+    --border-strong: #46463f;
+    --text: #ecebe6;
+    --text-2: #b4b2a9;
+    --text-3: #85847d;
+    --accent: #8f88e6;
+    --accent-text: #15122e;
+    --danger: #f28b82;
+    --danger-bg: #3a1f1d;
+    --shadow: 0 8px 28px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--radius);
+  font-weight: 500;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+}
+.btn:hover {
+  background: var(--hover);
+}
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+.btn.primary:hover {
+  filter: brightness(1.08);
+}
+.btn.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.input {
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  outline: none;
+}
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--active);
+}
+
+.error-text {
+  color: var(--danger);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

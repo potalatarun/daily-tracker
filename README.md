@@ -28,7 +28,70 @@ Coming with the first release: download from the project page, double-click to i
 
 ## Build from source
 
-Coming with the first code milestone.
+For developers who want to run or change the code. Regular users should use the installer above.
+
+### 1. Install the prerequisites (once)
+
+Every OS needs **[Node.js 20+](https://nodejs.org)** and **[Rust](https://rustup.rs)** (stable). Then:
+
+<details>
+<summary><b>macOS</b></summary>
+
+```bash
+xcode-select --install
+```
+</details>
+
+<details>
+<summary><b>Windows</b></summary>
+
+- Install [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) and tick **"Desktop development with C++"**.
+- WebView2 is already included in Windows 10 (recent updates) and Windows 11.
+</details>
+
+<details>
+<summary><b>Linux (Debian / Ubuntu)</b></summary>
+
+```bash
+sudo apt update
+sudo apt install libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev \
+  librsvg2-dev libssl-dev build-essential curl wget file
+```
+For Fedora, Arch and others, see the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/).
+</details>
+
+### 2. Run it
+
+```bash
+git clone https://github.com/potalatarun/daily-tracker.git
+cd daily-tracker
+npm install
+npm run tauri dev
+```
+
+The first run compiles the Rust core, which takes a few minutes. After that it starts in seconds and reloads when you edit the UI.
+
+### 3. Useful commands
+
+| Command | What it does |
+|---|---|
+| `npm run tauri dev` | Run the app with live reload |
+| `npm run tauri build` | Build an installer for your OS (in `src-tauri/target/release/bundle/`) |
+| `npm run check` | Type-check the UI |
+| `cd src-tauri && cargo test` | Run the core's unit tests |
+
+### Project layout
+
+```
+src/                 Svelte + TypeScript UI
+src-tauri/src/
+  commands/          functions the UI calls
+  services/          business rules (workspaces, tasks, reminders, ...)
+  db/                SQLite connection and migrations
+docs/                spec, system design, decisions
+```
+
+Your data is stored in `daily-tracker.sqlite` inside the app-data folder (`~/Library/Application Support/com.potalatarun.dailytracker` on macOS, `%APPDATA%\com.potalatarun.dailytracker` on Windows, `~/.local/share/com.potalatarun.dailytracker` on Linux).
 
 ## License
 

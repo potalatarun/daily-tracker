@@ -32,7 +32,19 @@ For developers who want to run or change the code. Regular users should use the 
 
 ### 1. Install the prerequisites (once)
 
-Every OS needs **[Node.js 20+](https://nodejs.org)** and **[Rust](https://rustup.rs)** (stable). Then:
+Every OS needs **[Node.js 20+](https://nodejs.org)** and **Rust**.
+
+**Install Rust:**
+- macOS / Linux:
+  ```bash
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  source "$HOME/.cargo/env"
+  ```
+- Windows: download and run **rustup-init.exe** from [rustup.rs](https://rustup.rs), then **close and reopen your terminal**.
+
+Check it worked: `cargo --version` should print a version. If you see `failed to run 'cargo metadata'` later, Rust isn't installed or your terminal hasn't picked it up yet, so open a new terminal.
+
+Then the OS-specific pieces:
 
 <details>
 <summary><b>macOS</b></summary>

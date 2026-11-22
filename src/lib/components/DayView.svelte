@@ -56,7 +56,7 @@
   }
 
   async function saveNew(v: TaskFormValues) {
-    await day.create(v.date, v.title, v.description);
+    await day.create(v.date, v.title, v.description, v.reminders);
     adding = false;
   }
 
@@ -66,7 +66,11 @@
     if (v.title !== editing.title) changes.title = v.title;
     if (v.description !== editing.description) changes.description = v.description;
     if (v.date !== editing.originalDate) changes.date = v.date;
-    if (Object.keys(changes).length) await day.update(editing.id, changes);
+    const before = editing.reminders.map((r) => r.time).sort().join(",");
+    const remindersChanged = before !== [...v.reminders].sort().join(",");
+    if (Object.keys(changes).length || remindersChanged) {
+      await day.update(editing.id, changes, remindersChanged ? v.reminders : undefined);
+    }
     editing = null;
   }
 </script>
@@ -151,7 +155,7 @@
     heading="New task"
     submitLabel="Add task"
     today={day.today}
-    initial={{ date: day.date < day.today ? day.today : day.date, title: "", description: "" }}
+    initial={{ date: day.date < day.today ? day.today : day.date, title: "", description: "", reminders: [] }}
     onsave={saveNew}
     onclose={() => (adding = false)}
   />
@@ -162,7 +166,12 @@
     heading="Edit task"
     submitLabel="Save"
     today={day.today}
-    initial={{ date: editing.originalDate, title: editing.title, description: editing.description }}
+    initial={{
+      date: editing.originalDate,
+      title: editing.title,
+      description: editing.description,
+      reminders: editing.reminders.map((r) => r.time),
+    }}
     onsave={saveEdit}
     onclose={() => (editing = null)}
   />

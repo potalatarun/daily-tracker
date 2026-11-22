@@ -27,3 +27,8 @@ pub fn parse_date(s: &str) -> AppResult<NaiveDate> {
 pub fn fmt_date(d: NaiveDate) -> String {
     d.format("%Y-%m-%d").to_string()
 }
+
+/// Current local wall-clock time as "HH:MM".
+pub fn now_hhmm() -> String {
+    chrono::Local::now().format("%H:%M").to_string()
+}

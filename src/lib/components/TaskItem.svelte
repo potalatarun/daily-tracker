@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { TaskView } from "../api";
-  import { formatClock, formatDuration, plural, shortDate } from "../dates";
+  import { displayTime, formatClock, formatDuration, hhmm, plural, shortDate } from "../dates";
   import { clock } from "../stores/clock.svelte";
 
   interface Props {
@@ -22,6 +22,7 @@
   const running = $derived(t.runningSince !== null);
   const totalMs = $derived(t.trackedMs + (t.runningSince !== null ? Math.max(0, clock.now - t.runningSince) : 0));
   const canTrack = $derived(!done && !ghost);
+  const showReminders = $derived(canTrack && t.reminders.length > 0);
 </script>
 
 <svelte:window onclick={() => (menuOpen = false)} />
@@ -45,7 +46,7 @@
       <p class="desc">{t.description}</p>
     {/if}
 
-    {#if running || totalMs > 0 || (t.display === "carried" && t.carryDays) || t.display === "moved" || (t.display === "completedLater" && t.completedOn) || (done && t.doneAfterDays)}
+    {#if showReminders || running || totalMs > 0 || (t.display === "carried" && t.carryDays) || t.display === "moved" || (t.display === "completedLater" && t.completedOn) || (done && t.doneAfterDays)}
       <div class="meta">
         {#if running}
           <span class="badge running" aria-live="off">
@@ -55,6 +56,20 @@
           </span>
         {:else if totalMs > 0}
           <button type="button" class="badge time" onclick={onlog} title="Open time log">⏱ {formatDuration(totalMs)}</button>
+        {/if}
+
+        {#if showReminders}
+          {#each t.reminders as r (r.id)}
+            {#if r.snoozedUntil}
+              <span class="badge rem snoozed" title="Snoozed">💤 {displayTime(hhmm(r.snoozedUntil))}</span>
+            {:else}
+              <span
+                class="badge rem"
+                class:fired={r.lastFiredOn === today}
+                title={r.lastFiredOn === today ? "Already reminded today; repeats tomorrow if still open" : "Reminder"}
+              >⏰ {displayTime(r.time)}</span>
+            {/if}
+          {/each}
         {/if}
 
         {#if t.display === "carried" && t.carryDays}
@@ -224,6 +239,19 @@
   .badge.link:hover {
     color: var(--accent);
     background: var(--active);
+  }
+  .badge.rem {
+    color: var(--accent);
+    background: var(--active);
+  }
+  .badge.rem.fired {
+    color: var(--text-3);
+    background: var(--hover);
+    text-decoration: line-through;
+  }
+  .badge.rem.snoozed {
+    color: var(--text-2);
+    background: var(--hover);
   }
   .badge .sub {
     margin-left: 4px;

@@ -6,7 +6,11 @@ use crate::error::{AppError, AppResult};
 
 /// Keys the UI is allowed to read and write. Keeps typos from silently
 /// creating new settings.
-pub const ALLOWED_KEYS: &[&str] = &["last_workspace_id", "remember_panel_open"];
+pub const ALLOWED_KEYS: &[&str] = &[
+    "last_workspace_id",
+    "remember_panel_open",
+    "default_snooze_minutes",
+];
 
 pub fn get(conn: &Connection, key: &str) -> AppResult<Option<String>> {
     check_key(key)?;

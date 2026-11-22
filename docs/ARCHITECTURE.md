@@ -266,6 +266,9 @@ sequenceDiagram
 
 - **Carried tasks repeat their reminders.** Because `last_fired_on` is a date, a 3:00 PM reminder fires again at 3:00 PM on every day the task is still pending. Users can edit, add or remove reminder times at any time.
 - **Writes happen before the notification.** `last_fired_on` is written first, so a crash right after can never cause a duplicate on restart.
+- **The popup also opens by itself** when reminders fire, on top and without taking keyboard focus, because notifications can fail silently and the app can't detect it. See [DECISIONS.md → D17](DECISIONS.md#d17-popup-opens-automatically-when-a-reminder-fires). If the main window is open it also shows a "N reminders are waiting" banner.
+- **Adding a time that already passed today doesn't fire instantly.** It's recorded as already fired today and starts tomorrow (if the task is still open).
+- **Alerts live in memory.** Closing the popup dismisses them. After a restart, anything still due is caught by the missed-reminder check.
 - **Why a popup window instead of notification buttons?** Desktop notification action buttons and text inputs are inconsistent across macOS, Windows and Linux. A small app-owned popup works identically everywhere and makes *custom* snooze durations possible. See [DECISIONS.md → D7](DECISIONS.md#d7-reminder-popup-window-instead-of-notification-buttons).
 
 ### 5.4 Missed reminders (app closed, PC off, laptop asleep)

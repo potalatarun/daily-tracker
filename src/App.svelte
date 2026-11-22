@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { listen } from "@tauri-apps/api/event";
   import { api } from "./lib/api";
   import { WORKSPACE_COLORS } from "./lib/colors";
   import { day } from "./lib/stores/day.svelte";
@@ -10,6 +11,7 @@
 
   let rememberOpen = $state(true);
   let creatingDefaults = $state(false);
+  let waitingAlerts = $state(0);
 
   onMount(() => {
     day.init().then(() => workspaces.load());
@@ -27,9 +29,20 @@
       day.load();
     };
     window.addEventListener("focus", onFocus);
+
+    // Events from the core: reminders fired or handled in the popup, midnight passed.
+    const loadAlerts = () => api.getAlerts().then((a) => (waitingAlerts = a.length)).catch(() => {});
+    loadAlerts();
+    const unlisteners = [
+      listen("data-changed", () => day.load()),
+      listen("day-changed", () => day.checkRollover()),
+      listen("alerts-changed", loadAlerts),
+    ];
+
     return () => {
       clearInterval(tick);
       window.removeEventListener("focus", onFocus);
+      unlisteners.forEach((u) => u.then((f) => f()));
     };
   });
 
@@ -75,6 +88,13 @@
       </div>
     {:else}
       <div class="day-inner">
+        {#if waitingAlerts > 0}
+          <button class="alerts-banner" onclick={() => api.showAlerts()}>
+            <span aria-hidden="true">🔔</span>
+            {waitingAlerts === 1 ? "1 reminder is waiting" : `${waitingAlerts} reminders are waiting`}
+            <span class="open">Open</span>
+          </button>
+        {/if}
         <DayView />
       </div>
       {#if !rememberOpen}
@@ -118,6 +138,24 @@
     max-width: 760px;
     margin: 0 auto;
     padding: 24px 32px 80px;
+  }
+  .alerts-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    background: var(--active);
+    text-align: left;
+    font-weight: 500;
+  }
+  .alerts-banner .open {
+    margin-left: auto;
+    color: var(--accent);
+    font-weight: 600;
   }
   .remember-tab {
     position: absolute;

@@ -34,6 +34,29 @@ export interface TaskView extends Task {
   trackedMs: number;
   /** Start of the running session (UTC ms), if the timer is on. */
   runningSince: number | null;
+  reminders: Reminder[];
+}
+
+export interface Reminder {
+  id: string;
+  taskId: string;
+  /** Local "HH:MM". */
+  time: string;
+  enabled: boolean;
+  lastFiredOn: string | null;
+  snoozedUntil: number | null;
+}
+
+/** A fired reminder waiting in the popup. */
+export interface Alert {
+  reminderId: string;
+  taskId: string;
+  taskTitle: string;
+  workspaceName: string;
+  time: string;
+  missed: boolean;
+  fromSnooze: boolean;
+  firedAt: number;
 }
 
 export interface Session {
@@ -69,7 +92,7 @@ export interface MonthSummary {
   carriedToday: number;
 }
 
-export type SettingKey = "last_workspace_id" | "remember_panel_open";
+export type SettingKey = "last_workspace_id" | "remember_panel_open" | "default_snooze_minutes";
 
 /** Shape of errors thrown by commands (see src-tauri/src/error.rs). */
 export interface AppError {
@@ -113,6 +136,16 @@ export const api = {
   updateSession: (id: string, startedAt: number, endedAt: number | null) =>
     invoke<Session>("update_session", { id, startedAt, endedAt }),
   deleteSession: (id: string) => invoke<void>("delete_session", { id }),
+
+  setTaskReminders: (taskId: string, times: string[]) =>
+    invoke<Reminder[]>("set_task_reminders", { taskId, times }),
+  getAlerts: () => invoke<Alert[]>("get_alerts"),
+  alertDone: (taskId: string) => invoke<void>("alert_done", { taskId }),
+  alertSnooze: (reminderId: string, until: number) => invoke<void>("alert_snooze", { reminderId, until }),
+  alertDismiss: (reminderId: string) => invoke<void>("alert_dismiss", { reminderId }),
+  dismissAllAlerts: () => invoke<void>("dismiss_all_alerts"),
+  showAlerts: () => invoke<void>("show_alerts"),
+  showMainWindow: () => invoke<void>("show_main_window"),
 
   getSetting: (key: SettingKey) => invoke<string | null>("get_setting", { key }),
   setSetting: (key: SettingKey, value: string) => invoke<void>("set_setting", { key, value }),

@@ -136,3 +136,57 @@ export function localInstant(date: string, minutes: number): number {
   const d = parseYmd(date);
   return new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(minutes / 60), minutes % 60).getTime();
 }
+
+/** Normalizes a reminder time ("9:05", "0905", "9.05", "3pm", "3:30 pm") to "HH:MM"; null if invalid. */
+export function normalizeTime(s: string): string | null {
+  const t = s.trim().toLowerCase();
+  const ampm = /^(\d{1,2})(?::?(\d{2}))?\s*(am|pm)$/.exec(t);
+  let minutes: number | null;
+  if (ampm) {
+    let h = Number(ampm[1]);
+    const m = Number(ampm[2] ?? "0");
+    if (h < 1 || h > 12 || m > 59) return null;
+    if (ampm[3] === "pm" && h !== 12) h += 12;
+    if (ampm[3] === "am" && h === 12) h = 0;
+    minutes = h * 60 + m;
+  } else {
+    minutes = parseTime(t);
+  }
+  if (minutes === null) return null;
+  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+}
+
+/** Formats "15:00" for display using the user's 12/24-hour preference. */
+export function displayTime(hhmmStr: string): string {
+  const [h, m] = hhmmStr.split(":").map(Number);
+  return new Date(2000, 0, 1, h, m).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+/**
+ * Parses a custom snooze: minutes ("45", "45m", "45 min"), hours ("1h", "1h30",
+ * "1.5h", "2 hours") or a clock time ("16:30", "4:30pm" → today, or tomorrow if
+ * already past). Returns the UTC-ms instant to snooze until, or null.
+ */
+export function parseSnooze(input: string, now = new Date()): number | null {
+  const t = input.trim().toLowerCase();
+  if (!t) return null;
+  const mins = /^(\d+)\s*(m|min|mins|minute|minutes)?$/.exec(t);
+  if (mins) {
+    const n = Number(mins[1]);
+    return n > 0 ? now.getTime() + n * 60_000 : null;
+  }
+  const hm = /^(\d+(?:\.\d+)?)\s*(h|hr|hrs|hour|hours)\s*(?:(\d+)\s*(m|min|mins)?)?$/.exec(t);
+  if (hm) {
+    const total = Number(hm[1]) * 60 + Number(hm[3] ?? 0);
+    return total > 0 ? now.getTime() + Math.round(total) * 60_000 : null;
+  }
+  if (t.includes(":") || /(am|pm)$/.test(t)) {
+    const clock = normalizeTime(t);
+    if (!clock) return null;
+    const [h, m] = clock.split(":").map(Number);
+    const at = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
+    if (at.getTime() <= now.getTime()) at.setDate(at.getDate() + 1);
+    return at.getTime();
+  }
+  return null;
+}

@@ -32,7 +32,7 @@ For developers who want to run or change the code. Regular users should use the 
 
 ### 1. Install the prerequisites (once)
 
-Every OS needs **[Node.js 22 LTS](https://nodejs.org)** (20.19+ also works; older versions fail with a "Cannot find native binding" error) and **Rust**.
+Every OS needs **[Node.js 26 LTS](https://nodejs.org)** (download the "LTS" installer; `npm install` stops with an "Unsupported engine" error on older versions) and **Rust**.
 
 **Install Rust:**
 - macOS / Linux:

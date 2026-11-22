@@ -47,7 +47,9 @@ What the app does, from the user's point of view. For how it's built, see [ARCHI
 
 ## Remember panel
 - Right-hand side, separate per workspace, never tied to a date.
-- Table: Label · Value · Note · Updated. Inline edit, + Row, search, copy value, collapsible.
+- Table: Label · Value (monospace, with **Copy**) · Note, plus "Updated …" on hover.
+- Click any cell to edit the row; Enter saves, Esc cancels. **+ Add row**, search across all fields, Move up/down, delete with **Undo**. Collapsible.
+- A row needs at least a label or a value.
 - For names and locations, not passwords (stored as plain text).
 
 ## App behaviour

@@ -99,9 +99,9 @@ Stored in a single SQLite file in the OS app-data folder:
 
 | OS | Location |
 |---|---|
-| macOS | `~/Library/Application Support/com.dailytracker.app/` |
-| Windows | `%APPDATA%\com.dailytracker.app\` |
-| Linux | `~/.local/share/com.dailytracker.app/` |
+| macOS | `~/Library/Application Support/com.potalatarun.dailytracker/` |
+| Windows | `%APPDATA%\com.potalatarun.dailytracker\` |
+| Linux | `~/.local/share/com.potalatarun.dailytracker/` |
 
 ```mermaid
 erDiagram
@@ -370,6 +370,7 @@ The updater's **public key is embedded in the app** and the private key lives on
 | Reminders not firing because the window is closed | Core feature broken | Scheduler lives in the Rust core; window close keeps the app in the tray; start-at-login on by default |
 | PC off or asleep at reminder time | Silent missed reminders | Startup and wake-gap detection, one summary notification |
 | Two app instances running | Every reminder fires twice | Single-instance plugin |
+| Native file-drop handler swallowing in-page drag events (notably on Windows) | Drag-to-reorder silently broken | Window `dragDropEnabled: false`; the app never needs files dropped on it |
 | Midnight carry-over job failing or running twice | Lost or duplicated tasks | No job: carry-over is a query on `original_date` |
 | Timer drift / lost time when sleeping or quitting | Wrong durations | Store start/end instants, compute on read |
 | Time-zone or DST change | Reminders at wrong time, wrong durations | Instants in UTC, reminder times and dates as local wall-clock |

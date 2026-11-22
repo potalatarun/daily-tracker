@@ -29,3 +29,7 @@ Coming with the first release: download from the project page, double-click to i
 ## Build from source
 
 Coming with the first code milestone.
+
+## License
+
+[MIT](LICENSE)

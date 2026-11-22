@@ -9,8 +9,8 @@
 <script lang="ts">
   import { tick, untrack } from "svelte";
   import { errorMessage } from "../api";
-  import { addDays, longDate, parseYmd, relativeDay } from "../dates";
-  import MiniCalendar from "./MiniCalendar.svelte";
+  import { addDays } from "../dates";
+  import DateButton from "./DateButton.svelte";
 
   interface Props {
     heading: string;
@@ -30,20 +30,12 @@
   let error = $state<string | null>(null);
   let saving = $state(false);
 
-  let pickerOpen = $state(false);
-  let calYear = $state(parseYmd(init.date).getFullYear());
-  let calMonth = $state(parseYmd(init.date).getMonth());
 
   let titleInput: HTMLInputElement | undefined = $state();
   $effect(() => {
     tick().then(() => titleInput?.focus());
   });
 
-  function pick(d: string) {
-    date = d;
-    pickerOpen = false;
-    titleInput?.focus();
-  }
 
   async function submit(e?: Event) {
     e?.preventDefault();
@@ -62,10 +54,7 @@
   }
 
   function onkeydown(e: KeyboardEvent) {
-    if (e.key === "Escape") {
-      if (pickerOpen) pickerOpen = false;
-      else onclose();
-    }
+    if (e.key === "Escape") onclose();
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit();
   }
 </script>
@@ -77,10 +66,7 @@
     aria-modal="true"
     aria-labelledby="task-form-title"
     tabindex="-1"
-    onclick={(e) => {
-      e.stopPropagation();
-      pickerOpen = false;
-    }}
+    onclick={(e) => e.stopPropagation()}
     onkeydown={(e) => {
       e.stopPropagation();
       onkeydown(e);
@@ -92,44 +78,10 @@
     <div class="field">
       <span class="label" id="date-label">Date</span>
       <div class="date-row">
-        <div class="date-wrap">
-          <button
-            type="button"
-            class="date-btn"
-            aria-labelledby="date-label"
-            aria-haspopup="dialog"
-            aria-expanded={pickerOpen}
-            onclick={(e) => {
-              e.stopPropagation();
-              const d = parseYmd(date);
-              calYear = d.getFullYear();
-              calMonth = d.getMonth();
-              pickerOpen = !pickerOpen;
-            }}
-          >
-            <span class="cal-icon" aria-hidden="true"></span>
-            {longDate(date)}
-            {#if ["Today", "Tomorrow", "Yesterday"].includes(relativeDay(date, today))}
-              <span class="rel">· {relativeDay(date, today)}</span>
-            {/if}
-          </button>
-          {#if pickerOpen}
-            <div class="picker" role="dialog" aria-label="Choose date" tabindex="-1" onclick={(e) => e.stopPropagation()} onkeydown={() => {}}>
-              <MiniCalendar
-                year={calYear}
-                month={calMonth}
-                selected={date}
-                {today}
-                onselect={pick}
-                onmonth={(d) => {
-                  const n = new Date(calYear, calMonth + d, 1);
-                  calYear = n.getFullYear();
-                  calMonth = n.getMonth();
-                }}
-              />
-            </div>
-          {/if}
-        </div>
+        <DateButton value={date} {today} labelledby="date-label" onchange={(d) => {
+          date = d;
+          titleInput?.focus();
+        }} />
         <button type="button" class="chip" class:on={date === today} onclick={() => (date = today)}>Today</button>
         <button type="button" class="chip" class:on={date === addDays(today, 1)} onclick={() => (date = addDays(today, 1))}>Tomorrow</button>
       </div>
@@ -207,47 +159,6 @@
     display: flex;
     align-items: center;
     gap: 6px;
-  }
-  .date-wrap {
-    position: relative;
-    flex: 1;
-  }
-  .date-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    height: 32px;
-    padding: 0 10px;
-    border: 1px solid var(--border-strong);
-    border-radius: 6px;
-    background: var(--surface);
-    text-align: left;
-  }
-  .date-btn:hover {
-    border-color: var(--text-3);
-  }
-  .rel {
-    color: var(--text-2);
-  }
-  .cal-icon {
-    width: 14px;
-    height: 13px;
-    border: 1.5px solid var(--text-2);
-    border-top-width: 3px;
-    border-radius: 3px;
-  }
-  .picker {
-    position: absolute;
-    top: 36px;
-    left: 0;
-    z-index: 5;
-    width: 250px;
-    padding: 10px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--surface);
-    box-shadow: var(--shadow);
   }
   .chip {
     height: 32px;

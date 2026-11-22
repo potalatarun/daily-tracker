@@ -7,10 +7,13 @@
   import ConfirmDialog from "./ConfirmDialog.svelte";
   import TaskForm, { type TaskFormValues } from "./TaskForm.svelte";
   import TaskItem from "./TaskItem.svelte";
+  import TimeLog from "./TimeLog.svelte";
+  import { timer } from "../stores/timer.svelte";
 
   let adding = $state(false);
   let editing = $state<TaskView | null>(null);
   let deleting = $state<TaskView | null>(null);
+  let logging = $state<TaskView | null>(null);
 
   const GROUPS: { key: TaskDisplay; label: (isToday: boolean) => string }[] = [
     { key: "carried", label: () => "Carried over" },
@@ -39,7 +42,7 @@
   }
 
   function onkeydown(e: KeyboardEvent) {
-    if (adding || editing || deleting) return;
+    if (adding || editing || deleting || logging) return;
     const mod = isMac ? e.metaKey : e.ctrlKey;
     if (mod && e.key.toLowerCase() === "n") {
       e.preventDefault();
@@ -133,6 +136,9 @@
             onedit={() => (editing = t)}
             ondelete={() => (deleting = t)}
             ongo={(d) => day.setDate(d)}
+            onstart={() => timer.start(t.id)}
+            onpause={() => timer.pause(t.id)}
+            onlog={() => (logging = t)}
           />
         {/each}
       </ul>
@@ -160,6 +166,10 @@
     onsave={saveEdit}
     onclose={() => (editing = null)}
   />
+{/if}
+
+{#if logging}
+  <TimeLog task={logging} today={day.today} onchanged={() => day.load()} onclose={() => (logging = null)} />
 {/if}
 
 {#if deleting}

@@ -86,3 +86,53 @@ export const WEEKDAYS_SHORT = (() => {
 export function monthLabel(year: number, month: number): string {
   return new Date(year, month, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
 }
+
+// ── durations and clock times ─────────────────────────────
+
+/** "1h 20m", "45m", "<1m". */
+export function formatDuration(ms: number): string {
+  if (ms <= 0) return "0m";
+  if (ms < 60_000) return "<1m";
+  const totalMin = Math.floor(ms / 60_000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h === 0) return `${m}m`;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+}
+
+/** Live stopwatch: "4:05", "1:02:03". */
+export function formatClock(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = String(s % 60).padStart(2, "0");
+  return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
+}
+
+/** "14:30" in local time for a UTC-ms instant. */
+export function hhmm(ms: number): string {
+  const d = new Date(ms);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+/** Local date ("YYYY-MM-DD") of a UTC-ms instant. */
+export function ymdOf(ms: number): string {
+  return ymd(new Date(ms));
+}
+
+/** Parses "9:05", "09:05", "0905" or "9.05" into minutes after midnight; null if invalid. */
+export function parseTime(s: string): number | null {
+  const t = s.trim().replace(".", ":");
+  const m = /^(\d{1,2}):?(\d{2})$/.exec(t);
+  if (!m) return null;
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  if (h > 23 || min > 59) return null;
+  return h * 60 + min;
+}
+
+/** UTC ms for a local date + minutes after midnight. */
+export function localInstant(date: string, minutes: number): number {
+  const d = parseYmd(date);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(minutes / 60), minutes % 60).getTime();
+}

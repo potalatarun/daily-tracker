@@ -1,5 +1,6 @@
 import { api, errorMessage, type MonthSummary, type TaskView } from "../api";
 import { addDays, parseYmd, shortDate, todayYmd, ymd } from "../dates";
+import { timer } from "./timer.svelte";
 import { toast } from "./toast.svelte";
 import { workspaces } from "./workspaces.svelte";
 
@@ -51,6 +52,8 @@ class DayStore {
       if (seq === this.loadSeq) this.loading = false;
     }
     this.loadMonth();
+    // Completing/deleting a task can stop the running timer; keep the sidebar in sync.
+    timer.load();
   }
 
   async loadMonth() {

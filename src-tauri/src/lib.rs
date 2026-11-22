@@ -44,6 +44,13 @@ pub fn run() {
             commands::tasks::reopen_task,
             commands::tasks::delete_task,
             commands::tasks::restore_task,
+            commands::timer::start_timer,
+            commands::timer::pause_timer,
+            commands::timer::get_active_timer,
+            commands::timer::list_sessions,
+            commands::timer::add_session,
+            commands::timer::update_session,
+            commands::timer::delete_session,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Daily Tracker");

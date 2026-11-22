@@ -32,7 +32,8 @@ What the app does, from the user's point of view. For how it's built, see [ARCHI
 ## Time tracking (optional)
 - ▶ Start · ⏸ Pause · ▶ Resume · ✓ Done.
 - Total shows worked time across sessions (1 h Monday + 2 h Tuesday = 3 h).
-- Sessions can be edited by hand.
+- Time log per task: see every session, add time by hand, fix or delete entries.
+- The running timer shows in the sidebar from any workspace, with a pause button.
 - Only one timer runs at a time; starting another pauses the current one.
 - Keeps counting if the window is closed or the laptop sleeps.
 

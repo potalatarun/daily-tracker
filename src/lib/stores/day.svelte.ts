@@ -114,10 +114,11 @@ class DayStore {
 
   // ── mutations ────────────────────────────────────────────
 
-  async create(date: string, title: string, description: string) {
+  async create(date: string, title: string, description: string, reminders: string[] = []) {
     const ws = workspaces.selectedId;
     if (!ws) return;
-    await api.createTask(ws, date, title, description);
+    const task = await api.createTask(ws, date, title, description);
+    if (reminders.length) await api.setTaskReminders(task.id, reminders);
     if (date !== this.date && !(this.isToday && date < this.today)) {
       toast.show(`Task added to ${date === this.today ? "Today" : shortDate(date, this.today)}`, {
         action: { label: "Go to day", run: () => this.setDate(date) },
@@ -126,8 +127,13 @@ class DayStore {
     await this.load();
   }
 
-  async update(id: string, changes: { title?: string; description?: string; date?: string }) {
-    await api.updateTask(id, changes);
+  async update(
+    id: string,
+    changes: { title?: string; description?: string; date?: string },
+    reminders?: string[],
+  ) {
+    if (Object.keys(changes).length) await api.updateTask(id, changes);
+    if (reminders) await api.setTaskReminders(id, reminders);
     await this.load();
   }
 

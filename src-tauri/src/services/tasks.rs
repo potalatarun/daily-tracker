@@ -61,6 +61,8 @@ pub struct TaskView {
     pub tracked_ms: i64,
     /// Start of the running session, if the timer is on (UTC ms).
     pub running_since: Option<i64>,
+    /// Reminder times on this task.
+    pub reminders: Vec<crate::services::reminders::Reminder>,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
@@ -273,6 +275,9 @@ pub fn day_view(
             v
         })
         .collect();
+    for v in views.iter_mut() {
+        v.reminders = crate::services::reminders::list_for_task(conn, &v.task.id)?;
+    }
     views.sort_by(|a, b| {
         rank(a)
             .cmp(&rank(b))
@@ -326,6 +331,7 @@ fn classify(task: Task, day: NaiveDate, today: NaiveDate) -> TaskView {
         done_after_days,
         tracked_ms: 0,
         running_since: None,
+        reminders: Vec::new(),
     }
 }
 

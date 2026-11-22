@@ -20,6 +20,7 @@ Each entry records **what we chose, what we rejected, and why**. They are kept s
 | D14 | [Installers from CI, unsigned for now](#d14-installers-from-ci-unsigned-for-now) | Accepted |
 | D15 | [GitHub Pages download page](#d15-github-pages-download-page) | Accepted |
 | D16 | [Signed auto-updates from GitHub Releases](#d16-signed-auto-updates-from-github-releases) | Accepted |
+| D17 | [Popup opens automatically when a reminder fires](#d17-popup-opens-automatically-when-a-reminder-fires) | Accepted (refines D7) |
 
 ---
 
@@ -135,3 +136,10 @@ Each entry records **what we chose, what we rejected, and why**. They are kept s
 
 **Chose:** Tauri updater checks `latest.json` on GitHub Releases at start and every 6 h; updates are verified against a public key embedded in the app.
 **Why:** users should never have to re-download manually. Signature verification means only builds signed with the maintainer's private key (stored in GitHub Secrets, never in the repo) can be installed. This key is free and separate from OS code signing.
+
+### D17. Popup opens automatically when a reminder fires
+
+**Chose:** when a reminder fires, show the OS notification **and** open the reminder popup (always on top, without taking keyboard focus). Clicking the notification also opens or focuses the popup.
+**Rejected:** relying on the OS notification alone, with the popup only on click (the original D7 plan).
+**Why:** found while testing. A notification can fail *silently*: notifications turned off for the app, Focus / Do Not Disturb, no notification service on some Linux desktops, and on Windows they only work for installed apps, not dev builds. The notification plugin sends in the background and can't report these failures, so the app can't detect them and fall back. A reminder that nobody sees defeats the point of the app, so the popup is the guaranteed channel and the notification is the attention-grabber.
+**Trade-off accepted:** a small window appears on top of whatever you're doing. It doesn't steal focus, and closing it dismisses its reminders. A Settings toggle to turn auto-open off can be added if it feels too intrusive.

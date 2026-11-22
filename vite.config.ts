@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 
@@ -19,5 +20,12 @@ export default defineConfig({
     target: "es2021",
     minify: !process.env.TAURI_ENV_DEBUG,
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
+    // Two pages: the main window and the reminder popup window.
+    rollupOptions: {
+      input: {
+        main: resolve(import.meta.dirname, "index.html"),
+        popup: resolve(import.meta.dirname, "popup.html"),
+      },
+    },
   },
 });

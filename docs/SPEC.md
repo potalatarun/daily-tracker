@@ -40,7 +40,8 @@ What the app does, from the user's point of view. For how it's built, see [ARCHI
 ## Reminders
 - Multiple per task, at chosen times.
 - Repeat at the same times every day a task is carried; editable any time.
-- OS notification → click → popup with **Done**, **Snooze** (5 / 15 / 30 min, or custom duration, or "until" a time), **Dismiss**.
+- When a reminder fires: OS notification **and** a small popup in the corner with **Done**, **Snooze** (5 / 15 / 30 / 60 min, your default, or custom: "45", "1h30", "16:30"), **Dismiss**. Clicking the notification brings the popup forward.
+- Reminder times accept "15:00", "9:30", "0930" or "3pm"; up to 10 per task. Chips on the task show them (crossed out once they've fired today, 💤 while snoozed).
 - Default snooze length in Settings.
 - Missed reminders (PC off, app closed, asleep): one summary notification on startup or wake.
 

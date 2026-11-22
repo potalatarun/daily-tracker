@@ -17,6 +17,8 @@ const MIGRATIONS: &[&str] = &[include_str!("migrations/0001_init.sql")];
 
 pub struct Db {
     conn: Mutex<Connection>,
+    /// The database file (None for in-memory test databases).
+    path: Option<PathBuf>,
 }
 
 impl Db {
@@ -33,7 +35,13 @@ impl Db {
         migrate(&mut conn, backup_dir.as_deref())?;
         Ok(Self {
             conn: Mutex::new(conn),
+            path: Some(path.to_path_buf()),
         })
+    }
+
+    /// Folder holding the database file and its `backups/` folder.
+    pub fn data_dir(&self) -> Option<&Path> {
+        self.path.as_deref().and_then(Path::parent)
     }
 
     /// In-memory database for tests.
@@ -44,6 +52,7 @@ impl Db {
         migrate(&mut conn, None)?;
         Ok(Self {
             conn: Mutex::new(conn),
+            path: None,
         })
     }
 
@@ -94,12 +103,13 @@ fn migrate(conn: &mut Connection, backup_dir: Option<&Path>) -> AppResult<()> {
 
 /// Writes a consistent snapshot using `VACUUM INTO` (safe while in WAL mode).
 fn backup(conn: &Connection, dir: &Path, version: usize) -> AppResult<PathBuf> {
+    snapshot(conn, dir, &format!("before-v{}", version + 1))
+}
+
+/// Writes a consistent copy of the database to `dir/<reason>-<timestamp>.sqlite`.
+pub fn snapshot(conn: &Connection, dir: &Path, reason: &str) -> AppResult<PathBuf> {
     std::fs::create_dir_all(dir)?;
-    let file = dir.join(format!(
-        "before-v{}-{}.sqlite",
-        version + 1,
-        crate::time::now_ms()
-    ));
+    let file = dir.join(format!("{reason}-{}.sqlite", crate::time::now_ms()));
     conn.execute("VACUUM INTO ?1", [file.to_string_lossy()])?;
     Ok(file)
 }

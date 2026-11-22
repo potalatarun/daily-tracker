@@ -173,6 +173,8 @@ erDiagram
 - **Derived values are computed, not stored.** Carry count and total tracked time are calculated on read, so they can never drift out of sync.
 - **Indexes** on `tasks(workspace_id, original_date, status)`, `tasks(workspace_id, completed_on)`, `reminders(task_id)` and `time_sessions(task_id)` keep the day view under a millisecond even with years of history.
 - **Migrations** are numbered SQL files applied on startup inside a transaction. The database is backed up automatically before a migration runs.
+- **Export / import** (Settings) use one readable JSON file (`format: "daily-tracker-export"`, versioned). Import is validated first, then replaces everything in a single transaction, so a bad file changes nothing. A snapshot of the current database is written to `backups/` before every import.
+- **Start hidden:** the main window is created hidden and shown in `setup` unless the app was launched with `--hidden`, which is how start-at-login launches it. No flash of a window at login.
 
 ---
 

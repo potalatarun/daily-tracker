@@ -4,6 +4,7 @@
   import { nextColor } from "../colors";
   import { workspaces } from "../stores/workspaces.svelte";
   import { day } from "../stores/day.svelte";
+  import { ui } from "../stores/ui.svelte";
   import ActiveTimer from "./ActiveTimer.svelte";
   import ColorPicker from "./ColorPicker.svelte";
   import ConfirmDialog from "./ConfirmDialog.svelte";
@@ -141,6 +142,9 @@
   <div class="brand">
     <img src="/icon.svg" alt="" width="22" height="22" />
     <span>Daily Tracker</span>
+    <button class="gear" aria-label="Settings" title="Settings" onclick={() => (ui.settingsOpen = true)}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.96 4.6H9a1.7 1.7 0 0 0 1-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v.04A1.7 1.7 0 0 0 20.96 10H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1Z" /></svg>
+    </button>
   </div>
 
   <ActiveTimer />
@@ -318,6 +322,28 @@
     padding: 2px 8px 18px;
     font-weight: 600;
     font-size: 15px;
+  }
+  .gear {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-left: auto;
+    border-radius: 6px;
+    color: var(--text-2);
+  }
+  .gear:hover {
+    background: var(--hover);
+    color: var(--text);
+  }
+  .gear svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
   .section-title {
     padding: 0 8px 6px;

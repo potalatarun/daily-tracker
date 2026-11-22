@@ -13,6 +13,8 @@ use tauri::{Emitter, Manager, RunEvent, WindowEvent};
 use tauri_plugin_notification::NotificationExt;
 
 pub const DB_FILE: &str = "daily-tracker.sqlite";
+/// Passed when the OS starts the app at login: stay in the tray, no window.
+pub const HIDDEN_ARG: &str = "--hidden";
 
 pub fn run() {
     let app = tauri::Builder::default()
@@ -22,6 +24,13 @@ pub fn run() {
             windows::show_main(app);
         }))
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
+        // Start at login launches with --hidden so the app starts quietly in the tray.
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec![HIDDEN_ARG]),
+        ))
         .manage(scheduler::Alerts::default())
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
@@ -43,6 +52,12 @@ pub fn run() {
                 // No tray host (e.g. some Linux desktops): the app still works;
                 // relaunching it shows the window again via single-instance.
                 eprintln!("[tray] not available: {e}");
+            }
+
+            // The main window starts hidden (tauri.conf.json) to avoid a flash;
+            // show it unless we were started at login.
+            if !std::env::args().any(|a| a == HIDDEN_ARG) {
+                windows::show_main(&handle);
             }
 
             scheduler::start(handle);
@@ -97,6 +112,13 @@ pub fn run() {
             commands::notes::delete_note,
             commands::notes::restore_note,
             commands::notes::reorder_notes,
+            commands::app::get_app_info,
+            commands::app::set_start_at_login,
+            commands::app::open_data_folder,
+            commands::app::send_test_notification,
+            commands::app::export_data,
+            commands::app::import_data,
+            commands::app::delete_all_data,
             commands::reminders::set_task_reminders,
             commands::reminders::get_alerts,
             commands::reminders::alert_done,

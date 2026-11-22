@@ -59,12 +59,17 @@ What the app does, from the user's point of view. For how it's built, see [ARCHI
 - Light/dark follows the OS.
 
 ## First launch
-1. Create workspaces (Work / Personal pre-filled).
-2. Allow notifications (banner with "Fix this" if denied).
-3. Start at login (on by default).
+1. **Workspaces:** Work / Personal pre-filled, rename, remove or add more. Or **"Moving from another computer? Import a backup"** to restore an export and skip setup.
+2. **Reminders:** explains the notification + reminder window; "Send a test notification", with where to allow notifications if nothing shows.
+3. **Start at login:** on by default; the app then starts quietly in the tray (`--hidden`).
+
+People who already have workspaces never see setup.
 
 ## Settings
-- Default snooze, start at login, open data folder, export / import (JSON), delete my data.
+Gear button next to the app name in the sidebar.
+- **Reminders:** default snooze (5 / 10 / 15 / 30 min / 1 h), open the reminder window automatically (on by default), send a test notification.
+- **Startup:** start at login (reads and changes the real OS setting).
+- **Your data:** where it's stored + "Open folder"; **Export…** (one JSON file) and **Import…** (replaces everything; a safety copy of the current database is saved to `backups/` first); **Delete all my data** (type DELETE to confirm; also removes backups and the start-at-login entry).
 
 ## Distribution
 - Download page (GitHub Pages) detects the OS.

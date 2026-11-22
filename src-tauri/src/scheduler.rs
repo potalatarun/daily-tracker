@@ -126,11 +126,23 @@ pub fn fire(app: &AppHandle, due: &[DueReminder], missed: bool) {
     let _ = app.emit("alerts-changed", ());
     let _ = app.emit("data-changed", ());
 
-    // Always show the popup too (on top, without stealing keyboard focus).
-    // Notifications can fail silently (permission off, Focus/Do Not Disturb, no
-    // notification service, unsigned dev builds on Windows) and the plugin
-    // can't report that, so the popup is what guarantees a reminder is seen.
-    windows::show_reminder_popup(app, false);
+    // Show the popup too (on top, without stealing keyboard focus), unless the
+    // user turned that off in Settings. Notifications can fail silently
+    // (permission off, Focus/Do Not Disturb, no notification service, unsigned
+    // dev builds on Windows) and the plugin can't report that, so the popup is
+    // what guarantees a reminder is seen (DECISIONS.md D17).
+    if auto_popup(app) {
+        windows::show_reminder_popup(app, false);
+    }
+}
+
+fn auto_popup(app: &AppHandle) -> bool {
+    let db = app.state::<Db>();
+    let conn = db.conn();
+    !matches!(
+        crate::services::settings::get(&conn, "auto_popup"),
+        Ok(Some(v)) if v == "false"
+    )
 }
 
 fn notify(app: &AppHandle, due: &[DueReminder], missed: bool) {

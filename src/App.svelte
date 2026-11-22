@@ -9,13 +9,29 @@
   import Sidebar from "./lib/components/Sidebar.svelte";
   import RememberPanel from "./lib/components/RememberPanel.svelte";
   import Toast from "./lib/components/Toast.svelte";
+  import Onboarding from "./lib/components/Onboarding.svelte";
+  import SettingsDialog from "./lib/components/SettingsDialog.svelte";
+  import { ui } from "./lib/stores/ui.svelte";
 
   let rememberOpen = $state(true);
   let creatingDefaults = $state(false);
   let waitingAlerts = $state(0);
+  /** null while loading, true while first-run setup is showing. */
+  let onboarding = $state<boolean | null>(null);
 
   onMount(() => {
-    day.init().then(() => workspaces.load());
+    day.init()
+      .then(() => workspaces.load())
+      .then(async () => {
+        // First run: no workspaces and setup not done yet. Existing users
+        // (who already have workspaces) skip setup.
+        const done = await api.getSetting("onboarded").catch(() => "1");
+        if (done) onboarding = false;
+        else if (workspaces.items.length > 0) {
+          onboarding = false;
+          api.setSetting("onboarded", "1").catch(() => {});
+        } else onboarding = true;
+      });
     api
       .getSetting("remember_panel_open")
       .then((v) => {
@@ -38,6 +54,8 @@
       listen("data-changed", () => day.load()),
       listen("day-changed", () => day.checkRollover()),
       listen("alerts-changed", loadAlerts),
+      // Import or "delete all data" replaced everything: start fresh.
+      listen("data-replaced", () => window.location.reload()),
     ];
 
     return () => {
@@ -68,11 +86,16 @@
   }
 </script>
 
+{#if onboarding}
+  <div class="onboarding">
+    <Onboarding ondone={() => (onboarding = false)} />
+  </div>
+{:else}
 <div class="shell" class:remember-closed={!rememberOpen || !workspaces.selected}>
   <Sidebar />
 
   <main class="day">
-    {#if !workspaces.loaded}
+    {#if !workspaces.loaded || onboarding === null}
       <div class="center muted">Loading…</div>
     {:else if workspaces.loadError}
       <div class="center">
@@ -108,10 +131,20 @@
     <RememberPanel onhide={toggleRemember} />
   {/if}
 </div>
+{/if}
+
+{#if ui.settingsOpen}
+  <SettingsDialog onclose={() => (ui.settingsOpen = false)} />
+{/if}
 
 <Toast />
 
 <style>
+  .onboarding {
+    height: 100%;
+    overflow-y: auto;
+    background: var(--bg);
+  }
   .shell {
     display: grid;
     grid-template-columns: 240px minmax(0, 1fr) 300px;

@@ -200,7 +200,10 @@ flowchart TD
 
 - `carry_days = today − original_date` (calendar days, local time zone), computed on read.
 - `done_after_days = completed_on − original_date`.
-- **Day rollover:** the core emits a `day-changed` event when the local date changes (checked by the scheduler tick), and the UI simply re-queries. Nothing is rewritten.
+- **One source of "today":** the UI never trusts its own clock for the date. It asks the core (`get_today`), so the window and the core can't disagree around midnight or across time-zone changes.
+- **Day rollover:** every 30 s, and whenever the window regains focus, the UI asks the core for today's date. If it changed while the user was looking at Today, the view moves to the new day and re-queries. Nothing is rewritten in the database. (Once the reminder scheduler lands, the core will push a `day-changed` event instead of the UI polling.)
+- **Rescheduling:** editing a task's date is an explicit user action, so its carry count restarts from the new date.
+- **Delete is undoable:** tasks are soft-deleted and a toast offers Undo.
 
 ### 5.2 Time tracking (pause and resume)
 

@@ -2,4 +2,5 @@
 //! Each function takes a connection so it can be unit-tested with an in-memory DB.
 
 pub mod settings;
+pub mod tasks;
 pub mod workspaces;

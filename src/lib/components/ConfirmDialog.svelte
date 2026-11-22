@@ -29,8 +29,6 @@
   }
 </script>
 
-<svelte:window {onkeydown} />
-
 <div class="backdrop" role="presentation" onclick={oncancel}>
   <div
     class="dialog"
@@ -39,7 +37,10 @@
     aria-labelledby="confirm-title"
     tabindex="-1"
     onclick={(e) => e.stopPropagation()}
-    onkeydown={(e) => e.stopPropagation()}
+    onkeydown={(e) => {
+      e.stopPropagation();
+      onkeydown(e);
+    }}
   >
     <h2 id="confirm-title">{title}</h2>
     <p>{message}</p>

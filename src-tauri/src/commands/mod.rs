@@ -2,4 +2,5 @@
 //! They only unpack arguments, lock the DB and call a service.
 
 pub mod settings;
+pub mod tasks;
 pub mod workspaces;

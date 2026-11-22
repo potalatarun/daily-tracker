@@ -3,8 +3,20 @@
   import { errorMessage, type Workspace } from "../api";
   import { nextColor } from "../colors";
   import { workspaces } from "../stores/workspaces.svelte";
+  import { day } from "../stores/day.svelte";
   import ColorPicker from "./ColorPicker.svelte";
   import ConfirmDialog from "./ConfirmDialog.svelte";
+  import MiniCalendar from "./MiniCalendar.svelte";
+
+  // Calendar dots: accent = something still to do that day, grey = only history.
+  const marks = $derived.by(() => {
+    const m = new Map<string, "pending" | "done">();
+    for (const d of day.month.days) {
+      m.set(d.date, d.pending > 0 && d.date >= day.today ? "pending" : "done");
+    }
+    if (day.month.carriedToday > 0) m.set(day.today, "pending");
+    return m;
+  });
 
   // ── menu ────────────────────────────────────────────────
   let menuFor = $state<string | null>(null);
@@ -255,6 +267,20 @@
       <span class="plus">+</span> New workspace
     </button>
   {/if}
+
+  {#if workspaces.selected}
+    <div class="calendar">
+      <MiniCalendar
+        year={day.calYear}
+        month={day.calMonth}
+        selected={day.date}
+        today={day.today}
+        {marks}
+        onselect={(d) => day.setDate(d)}
+        onmonth={(d) => day.shiftMonth(d)}
+      />
+    </div>
+  {/if}
 </nav>
 
 {#if confirmDelete}
@@ -447,6 +473,11 @@
     display: flex;
     justify-content: flex-end;
     gap: 6px;
+  }
+  .calendar {
+    margin-top: auto;
+    padding: 14px 4px 0;
+    border-top: 1px solid var(--border);
   }
   .btn.small {
     height: 28px;

@@ -2,22 +2,40 @@
   import { onMount } from "svelte";
   import { api } from "./lib/api";
   import { WORKSPACE_COLORS } from "./lib/colors";
+  import { day } from "./lib/stores/day.svelte";
   import { workspaces } from "./lib/stores/workspaces.svelte";
+  import DayView from "./lib/components/DayView.svelte";
   import Sidebar from "./lib/components/Sidebar.svelte";
+  import Toast from "./lib/components/Toast.svelte";
 
   let rememberOpen = $state(true);
   let creatingDefaults = $state(false);
 
-  const todayLabel = new Date().toLocaleDateString(undefined, {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
+  onMount(() => {
+    day.init().then(() => workspaces.load());
+    api
+      .getSetting("remember_panel_open")
+      .then((v) => {
+        if (v !== null) rememberOpen = v === "true";
+      })
+      .catch(() => {});
+
+    // Move "Today" forward after midnight or after waking from sleep.
+    const tick = setInterval(() => day.checkRollover(), 30_000);
+    const onFocus = async () => {
+      await day.checkRollover();
+      day.load();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearInterval(tick);
+      window.removeEventListener("focus", onFocus);
+    };
   });
 
-  onMount(async () => {
-    await workspaces.load();
-    const saved = await api.getSetting("remember_panel_open").catch(() => null);
-    if (saved !== null) rememberOpen = saved === "true";
+  // Reload the day whenever the selected workspace changes.
+  $effect(() => {
+    if (workspaces.selectedId) day.load();
   });
 
   function toggleRemember() {
@@ -56,22 +74,12 @@
         </button>
       </div>
     {:else}
-      <header class="day-header">
-        <div>
-          <div class="ws-label">
-            <span class="dot" style:background={workspaces.selected.color}></span>
-            {workspaces.selected.name}
-          </div>
-          <h1>Today <span class="date">· {todayLabel}</span></h1>
-        </div>
-        {#if !rememberOpen}
-          <button class="btn" onclick={toggleRemember} aria-label="Show Remember panel">Remember</button>
-        {/if}
-      </header>
-      <section class="empty">
-        <p>No tasks yet.</p>
-        <p class="muted small">Adding tasks, reminders and carry-over arrive in the next update.</p>
-      </section>
+      <div class="day-inner">
+        <DayView />
+      </div>
+      {#if !rememberOpen}
+        <button class="remember-tab" onclick={toggleRemember} aria-label="Show Remember panel">Remember</button>
+      {/if}
     {/if}
   </main>
 
@@ -90,59 +98,42 @@
   {/if}
 </div>
 
+<Toast />
+
 <style>
   .shell {
     display: grid;
-    grid-template-columns: 232px minmax(0, 1fr) 300px;
+    grid-template-columns: 240px minmax(0, 1fr) 300px;
     height: 100%;
   }
   .shell.remember-closed {
-    grid-template-columns: 232px minmax(0, 1fr);
+    grid-template-columns: 240px minmax(0, 1fr);
   }
   .day {
+    position: relative;
     overflow-y: auto;
-    padding: 22px 32px;
     background: var(--bg);
   }
-  .day-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 24px;
+  .day-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 24px 32px 80px;
   }
-  .ws-label {
-    display: flex;
-    align-items: center;
-    gap: 7px;
+  .remember-tab {
+    position: absolute;
+    top: 24px;
+    right: 0;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    background: var(--surface);
+    color: var(--text-2);
     font-size: 12px;
-    font-weight: 600;
-    color: var(--text-2);
-    margin-bottom: 4px;
+    font-weight: 500;
   }
-  .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-  }
-  h1 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 650;
-    letter-spacing: -0.01em;
-  }
-  .date {
-    font-weight: 400;
-    color: var(--text-2);
-  }
-  .empty {
-    padding: 48px 0;
-    text-align: center;
-    border: 1px dashed var(--border-strong);
-    border-radius: 12px;
-  }
-  .empty p {
-    margin: 4px 0;
+  .remember-tab:hover {
+    color: var(--text);
   }
   .center {
     display: grid;
@@ -151,6 +142,10 @@
     gap: 12px;
     height: 100%;
     text-align: center;
+  }
+  .welcome h1 {
+    margin: 0;
+    font-size: 22px;
   }
   .welcome p {
     max-width: 380px;
@@ -165,7 +160,7 @@
   .remember {
     border-left: 1px solid var(--border);
     background: var(--surface);
-    padding: 18px 18px;
+    padding: 18px;
     overflow-y: auto;
   }
   .remember header {

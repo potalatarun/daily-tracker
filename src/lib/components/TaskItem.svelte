@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { TaskView } from "../api";
-  import { plural, shortDate } from "../dates";
+  import { formatClock, formatDuration, plural, shortDate } from "../dates";
+  import { clock } from "../stores/clock.svelte";
 
   interface Props {
     task: TaskView;
@@ -9,12 +10,18 @@
     onedit: () => void;
     ondelete: () => void;
     ongo: (date: string) => void;
+    onstart: () => void;
+    onpause: () => void;
+    onlog: () => void;
   }
-  let { task: t, today, ontoggle, onedit, ondelete, ongo }: Props = $props();
+  let { task: t, today, ontoggle, onedit, ondelete, ongo, onstart, onpause, onlog }: Props = $props();
 
   let menuOpen = $state(false);
   const done = $derived(t.status === "done");
   const ghost = $derived(t.display === "moved" || t.display === "completedLater");
+  const running = $derived(t.runningSince !== null);
+  const totalMs = $derived(t.trackedMs + (t.runningSince !== null ? Math.max(0, clock.now - t.runningSince) : 0));
+  const canTrack = $derived(!done && !ghost);
 </script>
 
 <svelte:window onclick={() => (menuOpen = false)} />
@@ -38,28 +45,51 @@
       <p class="desc">{t.description}</p>
     {/if}
 
-    {#if t.display === "carried" && t.carryDays}
+    {#if running || totalMs > 0 || (t.display === "carried" && t.carryDays) || t.display === "moved" || (t.display === "completedLater" && t.completedOn) || (done && t.doneAfterDays)}
       <div class="meta">
-        <span class="badge carried" title="Not finished on {shortDate(t.originalDate, today)}, so it carried over automatically">
-          From {shortDate(t.originalDate, today)} · carried {plural(t.carryDays, "day")}
-        </span>
-      </div>
-    {:else if t.display === "moved"}
-      <div class="meta">
-        <button type="button" class="badge link" onclick={() => ongo(today)}>→ Moved to today</button>
-      </div>
-    {:else if t.display === "completedLater" && t.completedOn}
-      <div class="meta">
-        <button type="button" class="badge link" onclick={() => ongo(t.completedOn!)}>
-          ✓ Completed {shortDate(t.completedOn, today)}
-        </button>
-      </div>
-    {:else if done && t.doneAfterDays}
-      <div class="meta">
-        <span class="badge">From {shortDate(t.originalDate, today)} · done after {plural(t.doneAfterDays, "day")}</span>
+        {#if running}
+          <span class="badge running" aria-live="off">
+            <span class="pulse" aria-hidden="true"></span>
+            {formatClock(clock.now - (t.runningSince ?? clock.now))}
+            {#if t.trackedMs > 0}<span class="sub">· {formatDuration(totalMs)} total</span>{/if}
+          </span>
+        {:else if totalMs > 0}
+          <button type="button" class="badge time" onclick={onlog} title="Open time log">⏱ {formatDuration(totalMs)}</button>
+        {/if}
+
+        {#if t.display === "carried" && t.carryDays}
+          <span class="badge carried" title="Not finished on {shortDate(t.originalDate, today)}, so it carried over automatically">
+            From {shortDate(t.originalDate, today)} · carried {plural(t.carryDays, "day")}
+          </span>
+        {:else if t.display === "moved"}
+          <button type="button" class="badge link" onclick={() => ongo(today)}>→ Moved to today</button>
+        {:else if t.display === "completedLater" && t.completedOn}
+          <button type="button" class="badge link" onclick={() => ongo(t.completedOn!)}>
+            ✓ Completed {shortDate(t.completedOn, today)}
+          </button>
+        {:else if done && t.doneAfterDays}
+          <span class="badge">From {shortDate(t.originalDate, today)} · done after {plural(t.doneAfterDays, "day")}</span>
+        {/if}
       </div>
     {/if}
   </div>
+
+  {#if canTrack}
+    <button
+      type="button"
+      class="timer-btn"
+      class:on={running}
+      aria-label={running ? `Pause timer for "${t.title}"` : `Start timer for "${t.title}"`}
+      title={running ? "Pause" : t.trackedMs > 0 ? "Resume timer" : "Start timer"}
+      onclick={running ? onpause : onstart}
+    >
+      {#if running}
+        <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="3" width="3" height="10" rx="1" /><rect x="9" y="3" width="3" height="10" rx="1" /></svg>
+      {:else}
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9l7.5-4.5z" /></svg>
+      {/if}
+    </button>
+  {/if}
 
   <div class="menu-wrap">
     <button
@@ -78,6 +108,7 @@
       <div class="menu" role="menu">
         <button type="button" role="menuitem" onclick={onedit}>Edit</button>
         <button type="button" role="menuitem" onclick={ontoggle}>{done ? "Mark not done" : "Mark done"}</button>
+        <button type="button" role="menuitem" onclick={onlog}>Time log…</button>
         <div class="sep"></div>
         <button type="button" role="menuitem" class="danger" onclick={ondelete}>Delete</button>
       </div>
@@ -166,6 +197,7 @@
   }
   .meta {
     display: flex;
+    flex-wrap: wrap;
     gap: 6px;
     margin-top: 8px;
   }
@@ -192,6 +224,66 @@
   .badge.link:hover {
     color: var(--accent);
     background: var(--active);
+  }
+  .badge .sub {
+    margin-left: 4px;
+    opacity: 0.8;
+  }
+  .badge.time:hover {
+    color: var(--accent);
+    background: var(--active);
+  }
+  .badge.running {
+    gap: 6px;
+    color: var(--accent);
+    background: var(--active);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  .pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    50% {
+      opacity: 0.25;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pulse {
+      animation: none;
+    }
+  }
+  .timer-btn {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: var(--text-2);
+    opacity: 0;
+  }
+  .task:hover .timer-btn,
+  .timer-btn:focus-visible,
+  .timer-btn.on {
+    opacity: 1;
+  }
+  .timer-btn:hover {
+    background: var(--hover);
+    color: var(--accent);
+  }
+  .timer-btn.on {
+    background: var(--accent);
+    color: var(--accent-text);
+  }
+  .timer-btn svg {
+    width: 13px;
+    height: 13px;
+    fill: currentColor;
   }
   .menu-wrap {
     position: relative;

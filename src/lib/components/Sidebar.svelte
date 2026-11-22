@@ -4,6 +4,7 @@
   import { nextColor } from "../colors";
   import { workspaces } from "../stores/workspaces.svelte";
   import { day } from "../stores/day.svelte";
+  import ActiveTimer from "./ActiveTimer.svelte";
   import ColorPicker from "./ColorPicker.svelte";
   import ConfirmDialog from "./ConfirmDialog.svelte";
   import MiniCalendar from "./MiniCalendar.svelte";
@@ -141,6 +142,8 @@
     <img src="/icon.svg" alt="" width="22" height="22" />
     <span>Daily Tracker</span>
   </div>
+
+  <ActiveTimer />
 
   <div class="section-title">Workspaces</div>
 

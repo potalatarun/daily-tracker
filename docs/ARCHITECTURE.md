@@ -224,7 +224,9 @@ stateDiagram-v2
 - **Total time = sum of `(ended_at or now) − started_at`.** Example: 1 h Monday + 2 h Tuesday = 3 h, not ~26 h elapsed.
 - **Only one timer runs at a time.** Starting a task closes any other open session in the same database transaction, so there can never be two running timers.
 - **Timestamp-based, not tick-based.** Nothing counts seconds in the background. Closing the window, quitting or sleeping the laptop cannot lose time; the UI just renders `now − started_at` once per second while visible.
-- Sessions can be edited manually (forgotten pause), with validation that sessions don't overlap and `ended_at > started_at`.
+- **Time log:** sessions can be added, edited or deleted by hand (forgotten start or pause). The core rejects entries that overlap another entry of the same task (a running session counts as lasting until now), end before they start, lie in the future, or last more than 24 h. An end time earlier than the start time means the session ran past midnight.
+- **One timer, everywhere:** "only one running" applies across all workspaces. The running timer is shown in the sidebar whichever workspace or day is open, and clicking it jumps to the task.
+- **Done tasks don't track time:** starting the timer on a done task is refused; mark it not done first.
 
 ### 5.3 Reminder scheduler
 

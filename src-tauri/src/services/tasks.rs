@@ -57,6 +57,10 @@ pub struct TaskView {
     pub carry_days: Option<i64>,
     /// Days between original date and completion, if completed after its day.
     pub done_after_days: Option<i64>,
+    /// Sum of finished time sessions, in milliseconds.
+    pub tracked_ms: i64,
+    /// Start of the running session, if the timer is on (UTC ms).
+    pub running_since: Option<i64>,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
@@ -239,17 +243,36 @@ pub fn day_view(
     let today_s = fmt_date(today);
 
     let mut stmt = conn.prepare(&format!(
-        "SELECT {COLS} FROM tasks
+        "SELECT {COLS},
+                (SELECT COALESCE(SUM(s.ended_at - s.started_at), 0) FROM time_sessions s
+                 WHERE s.task_id = tasks.id AND s.ended_at IS NOT NULL) AS tracked_ms,
+                (SELECT MAX(s.started_at) FROM time_sessions s
+                 WHERE s.task_id = tasks.id AND s.ended_at IS NULL) AS running_since
+         FROM tasks
          WHERE workspace_id = ?1 AND deleted_at IS NULL
            AND (original_date = ?2
                 OR (?2 = ?3 AND original_date < ?3
                     AND (status = 'pending' OR completed_on = ?3)))"
     ))?;
-    let tasks = stmt
-        .query_map(params![workspace_id, day_s, today_s], from_row)?
+    let rows = stmt
+        .query_map(params![workspace_id, day_s, today_s], |r| {
+            Ok((
+                from_row(r)?,
+                r.get::<_, i64>("tracked_ms")?,
+                r.get::<_, Option<i64>>("running_since")?,
+            ))
+        })?
         .collect::<Result<Vec<_>, _>>()?;
 
-    let mut views: Vec<TaskView> = tasks.into_iter().map(|t| classify(t, day, today)).collect();
+    let mut views: Vec<TaskView> = rows
+        .into_iter()
+        .map(|(t, tracked_ms, running_since)| {
+            let mut v = classify(t, day, today);
+            v.tracked_ms = tracked_ms;
+            v.running_since = running_since;
+            v
+        })
+        .collect();
     views.sort_by(|a, b| {
         rank(a)
             .cmp(&rank(b))
@@ -301,6 +324,8 @@ fn classify(task: Task, day: NaiveDate, today: NaiveDate) -> TaskView {
         display,
         carry_days,
         done_after_days,
+        tracked_ms: 0,
+        running_since: None,
     }
 }
 
@@ -514,6 +539,18 @@ mod tests {
             )
             .unwrap();
         assert!(ended.is_some());
+    }
+
+    #[test]
+    fn day_view_includes_tracked_time_and_running_timer() {
+        let (db, ws) = setup();
+        let mut c = db.conn();
+        let t = create(&c, &ws, "2026-11-22", "Task", "").unwrap();
+        crate::services::timer::add(&c, &t.id, 1_000, 61_000, 10_000_000).unwrap();
+        crate::services::timer::start(&mut c, &t.id, 100_000).unwrap();
+        let v = day_view(&c, &ws, "2026-11-22", d("2026-11-22")).unwrap();
+        assert_eq!(v.tasks[0].tracked_ms, 60_000);
+        assert_eq!(v.tasks[0].running_since, Some(100_000));
     }
 
     #[test]

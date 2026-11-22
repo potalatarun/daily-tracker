@@ -30,6 +30,32 @@ export interface TaskView extends Task {
   display: TaskDisplay;
   carryDays: number | null;
   doneAfterDays: number | null;
+  /** Finished time sessions, ms. */
+  trackedMs: number;
+  /** Start of the running session (UTC ms), if the timer is on. */
+  runningSince: number | null;
+}
+
+export interface Session {
+  id: string;
+  taskId: string;
+  startedAt: number;
+  endedAt: number | null;
+}
+
+export interface ActiveTimer {
+  sessionId: string;
+  taskId: string;
+  taskTitle: string;
+  taskDate: string;
+  workspaceId: string;
+  startedAt: number;
+  previousMs: number;
+}
+
+export interface StartResult {
+  active: ActiveTimer;
+  pausedTaskTitle: string | null;
 }
 
 export interface DayView {
@@ -78,6 +104,16 @@ export const api = {
   deleteTask: (id: string) => invoke<void>("delete_task", { id }),
   restoreTask: (id: string) => invoke<Task>("restore_task", { id }),
 
-  getSetting:(key: SettingKey) => invoke<string | null>("get_setting", { key }),
+  startTimer: (taskId: string) => invoke<StartResult>("start_timer", { taskId }),
+  pauseTimer: (taskId: string) => invoke<void>("pause_timer", { taskId }),
+  getActiveTimer: () => invoke<ActiveTimer | null>("get_active_timer"),
+  listSessions: (taskId: string) => invoke<Session[]>("list_sessions", { taskId }),
+  addSession: (taskId: string, startedAt: number, endedAt: number) =>
+    invoke<Session>("add_session", { taskId, startedAt, endedAt }),
+  updateSession: (id: string, startedAt: number, endedAt: number | null) =>
+    invoke<Session>("update_session", { id, startedAt, endedAt }),
+  deleteSession: (id: string) => invoke<void>("delete_session", { id }),
+
+  getSetting: (key: SettingKey) => invoke<string | null>("get_setting", { key }),
   setSetting: (key: SettingKey, value: string) => invoke<void>("set_setting", { key, value }),
 };

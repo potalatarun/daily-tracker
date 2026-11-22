@@ -10,6 +10,39 @@ export interface Workspace {
   updatedAt: number;
 }
 
+export interface Task {
+  id: string;
+  workspaceId: string;
+  title: string;
+  description: string;
+  originalDate: string;
+  status: "pending" | "done";
+  completedAt: number | null;
+  completedOn: string | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/** How a task appears on the viewed day (see ARCHITECTURE.md §5.1). */
+export type TaskDisplay = "planned" | "carried" | "done" | "moved" | "completedLater";
+
+export interface TaskView extends Task {
+  display: TaskDisplay;
+  carryDays: number | null;
+  doneAfterDays: number | null;
+}
+
+export interface DayView {
+  date: string;
+  today: string;
+  tasks: TaskView[];
+}
+
+export interface MonthSummary {
+  days: { date: string; pending: number; done: number }[];
+  carriedToday: number;
+}
+
 export type SettingKey = "last_workspace_id" | "remember_panel_open";
 
 /** Shape of errors thrown by commands (see src-tauri/src/error.rs). */
@@ -32,6 +65,19 @@ export const api = {
   reorderWorkspaces: (ids: string[]) => invoke<Workspace[]>("reorder_workspaces", { ids }),
   deleteWorkspace: (id: string) => invoke<void>("delete_workspace", { id }),
 
-  getSetting: (key: SettingKey) => invoke<string | null>("get_setting", { key }),
+  getToday: () => invoke<string>("get_today"),
+  getDay: (workspaceId: string, date: string) => invoke<DayView>("get_day", { workspaceId, date }),
+  getMonthSummary: (workspaceId: string, from: string, to: string) =>
+    invoke<MonthSummary>("get_month_summary", { workspaceId, from, to }),
+  createTask: (workspaceId: string, date: string, title: string, description: string) =>
+    invoke<Task>("create_task", { workspaceId, date, title, description }),
+  updateTask: (id: string, changes: { title?: string; description?: string; date?: string }) =>
+    invoke<Task>("update_task", { id, ...changes }),
+  completeTask: (id: string) => invoke<Task>("complete_task", { id }),
+  reopenTask: (id: string) => invoke<Task>("reopen_task", { id }),
+  deleteTask: (id: string) => invoke<void>("delete_task", { id }),
+  restoreTask: (id: string) => invoke<Task>("restore_task", { id }),
+
+  getSetting:(key: SettingKey) => invoke<string | null>("get_setting", { key }),
   setSetting: (key: SettingKey, value: string) => invoke<void>("set_setting", { key, value }),
 };

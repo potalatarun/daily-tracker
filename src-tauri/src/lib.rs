@@ -35,6 +35,15 @@ pub fn run() {
             commands::workspaces::delete_workspace,
             commands::settings::get_setting,
             commands::settings::set_setting,
+            commands::tasks::get_today,
+            commands::tasks::get_day,
+            commands::tasks::get_month_summary,
+            commands::tasks::create_task,
+            commands::tasks::update_task,
+            commands::tasks::complete_task,
+            commands::tasks::reopen_task,
+            commands::tasks::delete_task,
+            commands::tasks::restore_task,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Daily Tracker");

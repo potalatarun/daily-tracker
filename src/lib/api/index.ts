@@ -92,6 +92,17 @@ export interface MonthSummary {
   carriedToday: number;
 }
 
+export interface Note {
+  id: string;
+  workspaceId: string;
+  label: string;
+  value: string;
+  note: string;
+  sortOrder: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
 export type SettingKey = "last_workspace_id" | "remember_panel_open" | "default_snooze_minutes";
 
 /** Shape of errors thrown by commands (see src-tauri/src/error.rs). */
@@ -146,6 +157,15 @@ export const api = {
   dismissAllAlerts: () => invoke<void>("dismiss_all_alerts"),
   showAlerts: () => invoke<void>("show_alerts"),
   showMainWindow: () => invoke<void>("show_main_window"),
+
+  listNotes: (workspaceId: string) => invoke<Note[]>("list_notes", { workspaceId }),
+  createNote: (workspaceId: string, label: string, value: string, note: string) =>
+    invoke<Note>("create_note", { workspaceId, label, value, note }),
+  updateNote: (id: string, changes: { label?: string; value?: string; note?: string }) =>
+    invoke<Note>("update_note", { id, ...changes }),
+  deleteNote: (id: string) => invoke<void>("delete_note", { id }),
+  restoreNote: (id: string) => invoke<Note>("restore_note", { id }),
+  reorderNotes: (workspaceId: string, ids: string[]) => invoke<Note[]>("reorder_notes", { workspaceId, ids }),
 
   getSetting: (key: SettingKey) => invoke<string | null>("get_setting", { key }),
   setSetting: (key: SettingKey, value: string) => invoke<void>("set_setting", { key, value }),

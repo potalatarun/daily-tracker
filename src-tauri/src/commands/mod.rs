@@ -1,6 +1,7 @@
 //! Thin `#[tauri::command]` handlers the UI calls via `invoke()`.
 //! They only unpack arguments, lock the DB and call a service.
 
+pub mod notes;
 pub mod reminders;
 pub mod settings;
 pub mod tasks;

@@ -7,6 +7,7 @@
   import { workspaces } from "./lib/stores/workspaces.svelte";
   import DayView from "./lib/components/DayView.svelte";
   import Sidebar from "./lib/components/Sidebar.svelte";
+  import RememberPanel from "./lib/components/RememberPanel.svelte";
   import Toast from "./lib/components/Toast.svelte";
 
   let rememberOpen = $state(true);
@@ -67,7 +68,7 @@
   }
 </script>
 
-<div class="shell" class:remember-closed={!rememberOpen}>
+<div class="shell" class:remember-closed={!rememberOpen || !workspaces.selected}>
   <Sidebar />
 
   <main class="day">
@@ -103,18 +104,8 @@
     {/if}
   </main>
 
-  {#if rememberOpen}
-    <aside class="remember" aria-label="Remember panel">
-      <header>
-        <h2>Remember</h2>
-        <button class="icon-btn" onclick={toggleRemember} aria-label="Hide Remember panel" title="Hide">⟩</button>
-      </header>
-      {#if workspaces.selected}
-        <p class="muted small">
-          Names, paths and decisions for <strong>{workspaces.selected.name}</strong> will live here.
-        </p>
-      {/if}
-    </aside>
+  {#if rememberOpen && workspaces.selected}
+    <RememberPanel onhide={toggleRemember} />
   {/if}
 </div>
 
@@ -191,34 +182,5 @@
   }
   .muted {
     color: var(--text-2);
-  }
-  .small {
-    font-size: 13px;
-  }
-  .remember {
-    border-left: 1px solid var(--border);
-    background: var(--surface);
-    padding: 18px;
-    overflow-y: auto;
-  }
-  .remember header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  .remember h2 {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 600;
-  }
-  .icon-btn {
-    width: 26px;
-    height: 26px;
-    border-radius: 5px;
-    color: var(--text-2);
-  }
-  .icon-btn:hover {
-    background: var(--hover);
   }
 </style>

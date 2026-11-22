@@ -204,9 +204,10 @@
 <style>
   .head {
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 16px;
+    gap: 12px 16px;
     margin-bottom: 8px;
   }
   .ws-label {
@@ -225,6 +226,7 @@
   }
   h1 {
     margin: 0;
+    white-space: nowrap;
     font-size: 22px;
     font-weight: 650;
     letter-spacing: -0.01em;

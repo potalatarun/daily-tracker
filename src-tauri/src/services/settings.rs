@@ -10,6 +10,8 @@ pub const ALLOWED_KEYS: &[&str] = &[
     "last_workspace_id",
     "remember_panel_open",
     "default_snooze_minutes",
+    "auto_popup",
+    "onboarded",
 ];
 
 pub fn get(conn: &Connection, key: &str) -> AppResult<Option<String>> {

@@ -103,7 +103,24 @@ export interface Note {
   updatedAt: number;
 }
 
-export type SettingKey = "last_workspace_id" | "remember_panel_open" | "default_snooze_minutes";
+export type SettingKey =
+  | "last_workspace_id"
+  | "remember_panel_open"
+  | "default_snooze_minutes"
+  | "auto_popup"
+  | "onboarded";
+
+export interface AppInfo {
+  version: string;
+  dataDir: string;
+  startAtLogin: boolean;
+}
+
+export interface ImportSummary {
+  workspaces: number;
+  tasks: number;
+  notes: number;
+}
 
 /** Shape of errors thrown by commands (see src-tauri/src/error.rs). */
 export interface AppError {
@@ -166,6 +183,16 @@ export const api = {
   deleteNote: (id: string) => invoke<void>("delete_note", { id }),
   restoreNote: (id: string) => invoke<Note>("restore_note", { id }),
   reorderNotes: (workspaceId: string, ids: string[]) => invoke<Note[]>("reorder_notes", { workspaceId, ids }),
+
+  getAppInfo: () => invoke<AppInfo>("get_app_info"),
+  setStartAtLogin: (enabled: boolean) => invoke<boolean>("set_start_at_login", { enabled }),
+  openDataFolder: () => invoke<void>("open_data_folder"),
+  sendTestNotification: () => invoke<void>("send_test_notification"),
+  /** Shows a save dialog; resolves to the saved path, or null if cancelled. */
+  exportData: () => invoke<string | null>("export_data"),
+  /** Shows an open dialog and replaces all data; null if cancelled. */
+  importData: () => invoke<ImportSummary | null>("import_data"),
+  deleteAllData: () => invoke<void>("delete_all_data"),
 
   getSetting: (key: SettingKey) => invoke<string | null>("get_setting", { key }),
   setSetting: (key: SettingKey, value: string) => invoke<void>("set_setting", { key, value }),

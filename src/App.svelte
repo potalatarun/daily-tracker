@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { listen } from "@tauri-apps/api/event";
-  import { api } from "./lib/api";
+  import { api, errorMessage, type UpdateInfo } from "./lib/api";
   import { WORKSPACE_COLORS } from "./lib/colors";
   import { day } from "./lib/stores/day.svelte";
   import { workspaces } from "./lib/stores/workspaces.svelte";
@@ -16,6 +16,20 @@
   let rememberOpen = $state(true);
   let creatingDefaults = $state(false);
   let waitingAlerts = $state(0);
+  let update = $state<UpdateInfo | null>(null);
+  let updating = $state(false);
+  let updateError = $state<string | null>(null);
+
+  async function installUpdate() {
+    updating = true;
+    updateError = null;
+    try {
+      await api.installUpdate(); // the app restarts when done
+    } catch (e) {
+      updateError = errorMessage(e);
+      updating = false;
+    }
+  }
   /** null while loading, true while first-run setup is showing. */
   let onboarding = $state<boolean | null>(null);
 
@@ -56,6 +70,7 @@
       listen("alerts-changed", loadAlerts),
       // Import or "delete all data" replaced everything: start fresh.
       listen("data-replaced", () => window.location.reload()),
+      listen<UpdateInfo>("update-available", (e) => (update = e.payload)),
     ];
 
     return () => {
@@ -112,6 +127,18 @@
       </div>
     {:else}
       <div class="day-inner">
+        {#if update}
+          <div class="update-bar" role="status">
+            <span>
+              <strong>Daily Tracker {update.version}</strong> is available
+              {#if updateError}<span class="error-text"> · {updateError}</span>{/if}
+            </span>
+            <button class="btn primary small" disabled={updating} onclick={installUpdate}>
+              {updating ? "Updating…" : "Update & restart"}
+            </button>
+            <button class="later" onclick={() => (update = null)}>Later</button>
+          </div>
+        {/if}
         {#if waitingAlerts > 0}
           <button class="alerts-banner" onclick={() => api.showAlerts()}>
             <span aria-hidden="true">🔔</span>
@@ -162,6 +189,28 @@
     max-width: 760px;
     margin: 0 auto;
     padding: 24px 32px 80px;
+  }
+  .update-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 8px 10px 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+  .update-bar > span {
+    flex: 1;
+  }
+  .update-bar .btn.small {
+    height: 28px;
+    padding: 0 12px;
+  }
+  .update-bar .later {
+    color: var(--text-2);
+    font-size: 13px;
+    padding: 4px 6px;
   }
   .alerts-banner {
     display: flex;

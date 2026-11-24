@@ -2,7 +2,9 @@
 
 A simple, lightweight desktop app for your daily work: plan tasks by date, get reminders, track time, and let unfinished work carry over automatically. Runs on **macOS, Windows and Linux**. Your data stays on your computer.
 
-> **Status:** in development. Installers and the download page will be available with the first release.
+### [⬇ Download for macOS, Windows or Linux](https://potalatarun.github.io/daily-tracker/)
+
+![Daily Tracker: today's tasks with carried-over work, reminders and the Remember panel](docs/images/screenshot.png)
 
 ## Features
 
@@ -21,10 +23,26 @@ A simple, lightweight desktop app for your daily work: plan tasks by date, get r
 | [Product spec](docs/SPEC.md) | What the app does and how it behaves |
 | [System design](docs/ARCHITECTURE.md) | Architecture, data model, scheduler, carry-over, release pipeline, with diagrams |
 | [Design decisions](docs/DECISIONS.md) | Every major trade-off and why we made it |
+| [Releasing](docs/RELEASING.md) | How installers are built and published, and how auto-update works |
 
 ## Install
 
-Coming with the first release: download from the project page, double-click to install. Instructions for each OS will be here.
+Go to the **[download page](https://potalatarun.github.io/daily-tracker/)**. It picks the right file for your computer. Or grab one from the [latest release](https://github.com/potalatarun/daily-tracker/releases/latest).
+
+| | How to install | First time you open it |
+|---|---|---|
+| **macOS** (Apple Silicon & Intel) | Open the `.dmg`, drag **Daily Tracker** into **Applications** | macOS says it can't verify the app → click **Done**, then **System Settings → Privacy & Security → Open Anyway** |
+| **Windows** 10 / 11 | Run the `…-setup.exe`. No admin rights needed. | “Windows protected your PC” → **More info → Run anyway** |
+| **Linux** | Ubuntu/Debian: `.deb` · Fedora: `.rpm` · any distro: `.AppImage` (make it executable, then open) | No warning |
+
+The one-time warning appears because the app isn't signed with a paid Apple/Microsoft certificate yet. The installers are built by GitHub Actions straight from this public code.
+
+**After installing:**
+- A short setup asks for your workspaces, lets you send a test notification, and offers to **start at login** so reminders always work.
+- Closing the window keeps Daily Tracker running in the **tray / menu bar**. Use **Quit** in the tray menu to stop it.
+- **Updates install themselves:** when a new version is out, a bar offers **Update & restart**. Settings → *Check for updates* checks right away.
+- **Moving to a new computer:** Settings → *Export…* on the old one; on the new one choose *Import a backup* in the first-run setup.
+- **Uninstall** like any other app. Your data stays in the app-data folder (below) unless you first use Settings → *Delete all my data*.
 
 ## Build from source
 
@@ -89,6 +107,7 @@ The first run compiles the Rust core, which takes a few minutes. After that it s
 |---|---|
 | `npm run tauri dev` | Run the app with live reload |
 | `npm run tauri build` | Build an installer for your OS (in `src-tauri/target/release/bundle/`) |
+| `npm run version:set 0.2.0` | Set the version everywhere before a release ([guide](docs/RELEASING.md)) |
 | `npm run check` | Type-check the UI |
 | `cd src-tauri && cargo test` | Run the core's unit tests |
 
@@ -100,7 +119,9 @@ src-tauri/src/
   commands/          functions the UI calls
   services/          business rules (workspaces, tasks, reminders, ...)
   db/                SQLite connection and migrations
-docs/                spec, system design, decisions
+docs/                spec, system design, decisions, releasing
+site/                the download page (GitHub Pages)
+.github/workflows/   ci.yml (every PR) · release.yml (installers) · pages.yml (download page)
 ```
 
 Your data is stored in `daily-tracker.sqlite` inside the app-data folder (`~/Library/Application Support/com.potalatarun.dailytracker` on macOS, `%APPDATA%\com.potalatarun.dailytracker` on Windows, `~/.local/share/com.potalatarun.dailytracker` on Linux).

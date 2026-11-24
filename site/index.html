@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Daily Tracker · Download</title>
+    <meta name="description" content="A simple, lightweight desktop app for your daily work: tasks by date, reminders, time tracking and automatic carry-over. For macOS, Windows and Linux." />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        --bg: #f7f7f5; --surface: #fff; --border: #e4e3de; --text: #22221f; --text-2: #5f5e5a; --text-3: #8a8983;
+        --accent: #534ab7; --accent-text: #fff; --accent-soft: rgba(83, 74, 183, 0.1);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Ubuntu, sans-serif;
+        color: var(--text); background: var(--bg); line-height: 1.55;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root { --bg: #1c1c1a; --surface: #242422; --border: #33332f; --text: #ecebe6; --text-2: #b4b2a9; --text-3: #85847d;
+          --accent: #8f88e6; --accent-text: #15122e; --accent-soft: rgba(175, 169, 236, 0.16); }
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      a { color: var(--accent); }
+      .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+      header.top { display: flex; align-items: center; gap: 10px; padding: 22px 0; font-weight: 650; }
+      header.top a.gh { margin-left: auto; font-weight: 500; font-size: 14px; color: var(--text-2); text-decoration: none; }
+      header.top a.gh:hover { color: var(--text); }
+      .hero { text-align: center; padding: 40px 0 28px; }
+      .hero h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.15; margin: 0 0 14px; letter-spacing: -0.02em; }
+      .hero p.lead { font-size: 18px; color: var(--text-2); max-width: 620px; margin: 0 auto 28px; }
+      .cta { display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px; border-radius: 12px; background: var(--accent);
+        color: var(--accent-text); font-size: 17px; font-weight: 600; text-decoration: none; }
+      .cta:hover { filter: brightness(1.08); }
+      .cta[aria-disabled="true"] { opacity: 0.6; pointer-events: none; }
+      .meta { margin-top: 12px; font-size: 14px; color: var(--text-3); }
+      .others { margin-top: 6px; font-size: 14px; color: var(--text-2); }
+      .others a { margin: 0 6px; }
+      .shot { margin: 36px auto 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--border);
+        box-shadow: 0 20px 60px rgba(0,0,0,.12); max-width: 940px; }
+      .shot img { display: block; width: 100%; height: auto; }
+      section { padding: 48px 0 0; }
+      h2 { font-size: 24px; margin: 0 0 16px; letter-spacing: -0.01em; }
+      .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+      .feature { padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+      .feature h3 { margin: 0 0 6px; font-size: 16px; }
+      .feature p { margin: 0; color: var(--text-2); font-size: 14.5px; }
+      .install { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+      .os { padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+      .os.mine { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+      .os h3 { margin: 0 0 8px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+      .os .tag { font-size: 11px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 2px 8px; border-radius: 10px; }
+      .os ol { margin: 0; padding-left: 20px; color: var(--text-2); font-size: 14.5px; }
+      .os li { margin: 4px 0; }
+      .os .dl { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+      .os .dl a { font-size: 14px; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); }
+      .os .dl a:hover { border-color: var(--accent); }
+      .note { margin-top: 14px; padding: 14px 16px; border-radius: 12px; background: var(--accent-soft); color: var(--text-2); font-size: 14.5px; }
+      kbd, code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; background: var(--accent-soft); padding: 1px 6px; border-radius: 5px; }
+      footer { margin: 64px 0 40px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 14px; color: var(--text-3); display: flex; gap: 16px; flex-wrap: wrap; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <img src="icon.svg" alt="" width="28" height="28" />
+        Daily Tracker
+        <a class="gh" href="https://github.com/potalatarun/daily-tracker">GitHub →</a>
+      </header>
+
+      <div class="hero">
+        <h1>Your day, simply tracked.</h1>
+        <p class="lead">Plan tasks by date, get reminders that actually fire, track how long things take, and let unfinished work carry over by itself. Light, fast, and your data stays on your computer.</p>
+        <a id="cta" class="cta" href="https://github.com/potalatarun/daily-tracker/releases/latest" aria-disabled="false">
+          <span id="cta-label">Download Daily Tracker</span>
+        </a>
+        <div class="meta" id="meta">Free and open source · macOS, Windows and Linux</div>
+        <div class="others" id="others"></div>
+      </div>
+
+      <div class="shot"><img src="screenshot.png" alt="Daily Tracker showing today's tasks, carried-over tasks, and the Remember panel" width="1180" height="760" /></div>
+
+      <section>
+        <h2>What it does</h2>
+        <div class="features">
+          <div class="feature"><h3>Tasks by date</h3><p>Pick a date, add a title and notes. Move between days with arrows or the calendar.</p></div>
+          <div class="feature"><h3>Automatic carry-over</h3><p>Didn't finish? It shows up in Today by itself, with its original date and how many days it's been carried.</p></div>
+          <div class="feature"><h3>Reminders that fire</h3><p>Set as many times as you like. A notification plus a small window with Done, Snooze (any length) and Dismiss. Missed ones are summarised.</p></div>
+          <div class="feature"><h3>Time tracking</h3><p>Start, pause, resume. See how long a task really took, even across days.</p></div>
+          <div class="feature"><h3>Workspaces</h3><p>Keep Work, Personal, or anything else apart.</p></div>
+          <div class="feature"><h3>Remember panel</h3><p>A permanent table for names, paths and decisions you don't want to dig for again.</p></div>
+        </div>
+      </section>
+
+      <section id="install">
+        <h2>Install</h2>
+        <div class="install">
+          <div class="os" id="os-mac">
+            <h3>macOS</h3>
+            <ol>
+              <li>Download the <strong>.dmg</strong> (works on Apple Silicon and Intel).</li>
+              <li>Open it and drag <strong>Daily Tracker</strong> into <strong>Applications</strong>.</li>
+              <li>The first time, macOS says it can't verify the app. Click <strong>Done</strong>, open <strong>System Settings → Privacy &amp; Security</strong>, scroll down and click <strong>Open Anyway</strong>.</li>
+            </ol>
+            <div class="dl" id="dl-mac"></div>
+          </div>
+          <div class="os" id="os-win">
+            <h3>Windows</h3>
+            <ol>
+              <li>Download the <strong>setup .exe</strong>.</li>
+              <li>Run it. If you see “Windows protected your PC”, click <strong>More info → Run anyway</strong>.</li>
+              <li>Click through the installer. No admin rights needed.</li>
+            </ol>
+            <div class="dl" id="dl-win"></div>
+          </div>
+          <div class="os" id="os-linux">
+            <h3>Linux</h3>
+            <ol>
+              <li><strong>Ubuntu / Debian:</strong> download the <strong>.deb</strong> and double-click it.</li>
+              <li><strong>Fedora:</strong> the <strong>.rpm</strong>.</li>
+              <li><strong>Any distribution:</strong> the <strong>.AppImage</strong>. Right-click → Properties → allow running as a program, then open it.</li>
+            </ol>
+            <div class="dl" id="dl-linux"></div>
+          </div>
+        </div>
+        <p class="note">
+          <strong>Why the warning on first open?</strong> The app isn't signed with a paid Apple or Microsoft certificate yet. It's open source, and
+          the installers are built by GitHub straight from the <a href="https://github.com/potalatarun/daily-tracker">public code</a>.
+          You only need to confirm once. After that, Daily Tracker <strong>updates itself</strong>.
+        </p>
+      </section>
+
+      <footer>
+        <span>MIT License</span>
+        <a href="https://github.com/potalatarun/daily-tracker">Source code</a>
+        <a href="https://github.com/potalatarun/daily-tracker/releases">All releases</a>
+        <a href="https://github.com/potalatarun/daily-tracker/blob/main/docs/ARCHITECTURE.md">How it's built</a>
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        var REPO = "potalatarun/daily-tracker";
+        var ALL = "https://github.com/" + REPO + "/releases/latest";
+
+        function detectOS() {
+          var p = ((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || "").toLowerCase();
+          var ua = navigator.userAgent.toLowerCase();
+          if (/iphone|ipad|android/.test(ua)) return "mobile";
+          if (p.indexOf("mac") >= 0 || ua.indexOf("mac os") >= 0) return "mac";
+          if (p.indexOf("win") >= 0 || ua.indexOf("windows") >= 0) return "win";
+          if (p.indexOf("linux") >= 0 || ua.indexOf("linux") >= 0) return "linux";
+          return "unknown";
+        }
+
+        var NAMES = { mac: "macOS", win: "Windows", linux: "Linux" };
+        var os = detectOS();
+        if (NAMES[os]) document.getElementById("os-" + os).classList.add("mine");
+        if (NAMES[os]) {
+          var h = document.querySelector("#os-" + os + " h3");
+          h.insertAdjacentHTML("beforeend", '<span class="tag">Your computer</span>');
+        }
+
+        function link(href, text) {
+          var a = document.createElement("a");
+          a.href = href;
+          a.textContent = text;
+          return a;
+        }
+
+        function pick(assets) {
+          function find(re) {
+            for (var i = 0; i < assets.length; i++) if (re.test(assets[i].name)) return assets[i];
+            return null;
+          }
+          return {
+            mac: [find(/\.dmg$/i)],
+            win: [find(/setup\.exe$/i) || find(/\.exe$/i), find(/\.msi$/i)],
+            linux: [find(/\.deb$/i), find(/\.rpm$/i), find(/\.AppImage$/i)],
+          };
+        }
+
+        function label(name) {
+          if (/\.dmg$/i.test(name)) return "Download .dmg";
+          if (/\.exe$/i.test(name)) return "Download setup .exe";
+          if (/\.msi$/i.test(name)) return ".msi";
+          if (/\.deb$/i.test(name)) return ".deb";
+          if (/\.rpm$/i.test(name)) return ".rpm";
+          if (/\.AppImage$/i.test(name)) return ".AppImage";
+          return name;
+        }
+
+        fetch("https://api.github.com/repos/" + REPO + "/releases/latest")
+          .then(function (r) {
+            if (r.status === 404) throw new Error("none");
+            if (!r.ok) throw new Error("api");
+            return r.json();
+          })
+          .then(function (rel) {
+            var files = pick(rel.assets || []);
+            ["mac", "win", "linux"].forEach(function (k) {
+              var box = document.getElementById("dl-" + k);
+              files[k].forEach(function (a) {
+                if (a) box.appendChild(link(a.browser_download_url, label(a.name)));
+              });
+            });
+            var cta = document.getElementById("cta");
+            var mine = NAMES[os] && files[os][0];
+            if (mine) {
+              cta.href = mine.browser_download_url;
+              document.getElementById("cta-label").textContent = "Download for " + NAMES[os];
+              var others = document.getElementById("others");
+              others.appendChild(document.createTextNode("Other systems:"));
+              Object.keys(NAMES).forEach(function (k) {
+                if (k !== os && files[k][0]) others.appendChild(link("#os-" + k, NAMES[k]));
+              });
+            } else if (os === "mobile") {
+              document.getElementById("cta-label").textContent = "See downloads (desktop app)";
+              cta.href = "#install";
+            }
+            var mb = mine && mine.size ? " · " + Math.round(mine.size / 1048576) + " MB" : "";
+            document.getElementById("meta").textContent =
+              "Version " + String(rel.tag_name).replace(/^v/, "") + mb + " · Free and open source";
+          })
+          .catch(function (e) {
+            if (e.message === "none") {
+              document.getElementById("cta-label").textContent = "First release coming soon";
+              document.getElementById("cta").setAttribute("aria-disabled", "true");
+              document.getElementById("meta").textContent = "Watch the GitHub repository to be notified.";
+            }
+            // On any other error the button simply opens the latest release on GitHub.
+            ["mac", "win", "linux"].forEach(function (k) {
+              document.getElementById("dl-" + k).appendChild(link(ALL, "Downloads on GitHub"));
+            });
+          });
+      })();
+    </script>
+  </body>
+</html>

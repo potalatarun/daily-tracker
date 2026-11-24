@@ -17,6 +17,23 @@
   let error = $state<string | null>(null);
   let confirm = $state<null | "import" | "delete">(null);
   let deleteText = $state("");
+  let updateStatus = $state<string | null>(null);
+  let checking = $state(false);
+
+  async function checkUpdates() {
+    checking = true;
+    updateStatus = null;
+    try {
+      const u = await api.checkForUpdates();
+      updateStatus = u
+        ? `Version ${u.version} is available. Use “Update & restart” at the top of the main window.`
+        : "You're on the latest version.";
+    } catch (e) {
+      updateStatus = errorMessage(e);
+    } finally {
+      checking = false;
+    }
+  }
 
   onMount(async () => {
     try {
@@ -169,7 +186,18 @@
       </div>
     </section>
 
-    <footer>Daily Tracker {info?.version ?? ""} · MIT License</footer>
+    <section>
+      <h3>About</h3>
+      <div class="row last">
+        <div>
+          <div class="label">Daily Tracker {info?.version ?? ""}</div>
+          <div class="desc">{updateStatus ?? "Updates are checked automatically when the app starts and every few hours."}</div>
+        </div>
+        <button class="btn small" disabled={checking} onclick={checkUpdates}>{checking ? "Checking…" : "Check for updates"}</button>
+      </div>
+    </section>
+
+    <footer>MIT License · github.com/potalatarun/daily-tracker</footer>
   </div>
 </div>
 
@@ -335,6 +363,9 @@
   .danger-outline {
     color: var(--danger);
     border-color: color-mix(in srgb, var(--danger) 50%, transparent);
+  }
+  .row.last {
+    border-bottom: none;
   }
   .danger-zone {
     border-bottom: none;

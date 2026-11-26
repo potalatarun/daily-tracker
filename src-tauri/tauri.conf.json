@@ -39,6 +39,27 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "createUpdaterArtifacts": false,
+    "macOS": {
+      "signingIdentity": "-",
+      "minimumSystemVersion": "10.15"
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU5QTczQ0E3QTM2Mzk1QjQKUldTMGxXT2pwenluV1VmNnhwQlY5TVJTREs5RTUvbG5PS0p5Z3h4M1pVVzZiOUxuWm9DUXpWMEMK",
+      "endpoints": [
+        "https://github.com/potalatarun/daily-tracker/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

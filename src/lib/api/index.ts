@@ -116,6 +116,12 @@ export interface AppInfo {
   startAtLogin: boolean;
 }
 
+export interface UpdateInfo {
+  version: string;
+  currentVersion: string;
+  notes: string | null;
+}
+
 export interface ImportSummary {
   workspaces: number;
   tasks: number;
@@ -193,6 +199,11 @@ export const api = {
   /** Shows an open dialog and replaces all data; null if cancelled. */
   importData: () => invoke<ImportSummary | null>("import_data"),
   deleteAllData: () => invoke<void>("delete_all_data"),
+
+  /** null when already up to date. */
+  checkForUpdates: () => invoke<UpdateInfo | null>("check_for_updates"),
+  /** Downloads, installs and restarts the app. */
+  installUpdate: () => invoke<void>("install_update"),
 
   getSetting: (key: SettingKey) => invoke<string | null>("get_setting", { key }),
   setSetting: (key: SettingKey, value: string) => invoke<void>("set_setting", { key, value }),

@@ -7,6 +7,7 @@ mod scheduler;
 mod services;
 mod time;
 mod tray;
+mod updater;
 mod windows;
 
 use tauri::{Emitter, Manager, RunEvent, WindowEvent};
@@ -26,6 +27,8 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .manage(updater::PendingUpdate::default())
         // Start at login launches with --hidden so the app starts quietly in the tray.
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
@@ -60,6 +63,7 @@ pub fn run() {
                 windows::show_main(&handle);
             }
 
+            updater::start(handle.clone());
             scheduler::start(handle);
             Ok(())
         })
@@ -119,6 +123,8 @@ pub fn run() {
             commands::app::export_data,
             commands::app::import_data,
             commands::app::delete_all_data,
+            updater::check_for_updates,
+            updater::install_update,
             commands::reminders::set_task_reminders,
             commands::reminders::get_alerts,
             commands::reminders::alert_done,

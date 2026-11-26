@@ -348,6 +348,10 @@ flowchart LR
 - **CI on every pull request** builds all three platforms and runs tests, so a change that breaks Windows is caught before merge.
 - **Linux is built on Ubuntu 22.04** (older glibc) so the AppImage runs on more distributions.
 - **Windows installer is per-user** (no admin prompt) and bootstraps WebView2 if missing.
+- **Release builds only** add the signed auto-update bundles (`tauri.release.conf.json` overlay), so `npm run tauri build` keeps working for contributors who don't have the signing key.
+- **Dry run:** pull requests that change the release setup build all installers without publishing and attach them as workflow artifacts.
+- **The download page** (`site/`, GitHub Pages) is static: it reads the latest release from the GitHub API in the visitor's browser, so it never needs redeploying for a new version.
+- Step-by-step maintainer guide: [RELEASING.md](RELEASING.md).
 - **Code signing is off for now** (free). Users see a one-time OS warning; the download page and README show how to open the app anyway. The workflow is already structured so Apple / Windows signing only requires adding secrets later.
 
 ### Update flow

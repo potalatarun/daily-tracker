@@ -1,0 +1,130 @@
+name: Release
+
+# Builds installers for macOS, Windows and Linux.
+#
+# - Pushing a tag like v0.2.0 builds, signs the auto-update bundles and
+#   creates a DRAFT GitHub Release with every installer plus latest.json.
+#   Check it, then press "Publish release". See docs/RELEASING.md.
+# - Pull requests that touch the release setup run a dry run: same builds, no
+#   release, installers uploaded as workflow artifacts so they can be tried.
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+    paths:
+      - ".github/workflows/release.yml"
+      - "src-tauri/tauri.conf.json"
+      - "src-tauri/tauri.release.conf.json"
+      - "src-tauri/Cargo.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS (universal)
+            os: macos-latest
+            args: --target universal-apple-darwin
+          - name: Windows
+            os: windows-latest
+            args: ""
+          - name: Linux
+            # Older glibc = the AppImage runs on more distributions.
+            os: ubuntu-22.04
+            args: ""
+    runs-on: ${{ matrix.os }}
+    env:
+      IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tag must match the app version
+        if: env.IS_RELEASE == 'true'
+        shell: bash
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "v$version" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} doesn't match package.json version $version. Run 'npm run version:set X.Y.Z', commit, then tag vX.Y.Z."
+            exit 1
+          fi
+
+      - name: Updater signing key must be set
+        if: env.IS_RELEASE == 'true'
+        shell: bash
+        env:
+          KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::error::Add the TAURI_SIGNING_PRIVATE_KEY secret first (see docs/RELEASING.md)."
+            exit 1
+          fi
+          if grep -q REPLACE_WITH_UPDATER_PUBLIC_KEY src-tauri/tauri.conf.json; then
+            echo "::error::Put the updater public key in src-tauri/tauri.conf.json first (see docs/RELEASING.md)."
+            exit 1
+          fi
+
+      - name: Install Linux system libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev \
+            libayatana-appindicator3-dev librsvg2-dev libssl-dev patchelf
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          # Universal macOS app = Apple Silicon + Intel in one download.
+          targets: ${{ runner.os == 'macOS' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      - name: Build (and publish draft release on tags)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          # Only tags create a release; other runs just build.
+          tagName: ${{ env.IS_RELEASE == 'true' && github.ref_name || '' }}
+          releaseName: "Daily Tracker ${{ github.ref_name }}"
+          releaseBody: |
+            **Download the right installer for your computer from the download page:**
+            https://potalatarun.github.io/daily-tracker/
+
+            Already installed? The app updates itself; look for "Update & restart" at the top of the window.
+          releaseDraft: true
+          prerelease: false
+          includeUpdaterJson: true
+          # Release builds also produce signed auto-update bundles.
+          args: ${{ matrix.args }} ${{ env.IS_RELEASE == 'true' && '--config src-tauri/tauri.release.conf.json' || '' }}
+
+      - name: Upload installers (dry run)
+        if: env.IS_RELEASE != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ runner.os }}
+          retention-days: 5
+          if-no-files-found: error
+          path: |
+            src-tauri/target/**/release/bundle/dmg/*.dmg
+            src-tauri/target/**/release/bundle/nsis/*.exe
+            src-tauri/target/**/release/bundle/msi/*.msi
+            src-tauri/target/**/release/bundle/appimage/*.AppImage
+            src-tauri/target/**/release/bundle/deb/*.deb
+            src-tauri/target/**/release/bundle/rpm/*.rpm
